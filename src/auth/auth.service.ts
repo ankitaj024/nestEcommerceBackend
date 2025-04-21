@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { CreateAuthDto } from 'src/user/dto/create-auth-dto';
 @Injectable()
 export class AuthService {
   constructor(

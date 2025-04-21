@@ -2,10 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { CreateAuthDto } from './dto/create-auth-dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService, private readonly authService:AuthService) {}
   
   // USER CREATE API
   @Post()
@@ -13,23 +15,11 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  //LOGIN API
+  @Post("/login")
+  userLogin(@Body() createAuthDto:CreateAuthDto) {
+    return this.authService.userLogin(createAuthDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
+  
 }

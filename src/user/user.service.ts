@@ -3,24 +3,29 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
-  
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
   //CREATE USER SERVICE
   async createUser(createUserDto: CreateUserDto) {
     try {
-      
-      const hashedPassword = await bcrypt.hash(createUserDto.password, 10); 
-      
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
       const userCreated = await this.prisma.user.create({
         data: {
           ...createUserDto,
           password: hashedPassword,
         },
       });
-      
+
+      //EMAIL SENDING
+      this.emailService.sendWelcomeEmail(createUserDto.email, createUserDto.name);
+
       return {
         status: HttpStatus.CREATED,
         message: 'User Created Successfully',
