@@ -19,3 +19,19 @@ model User{
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+
+model Category {
+  id            String        @id @default(auto()) @map("_id") @test.ObjectId
+  name          String
+  description   String?
+  subcategories Subcategory[] @relation("CategoryToSubcategory")
+}
+
+model Subcategory {
+  id         String   @id @default(auto()) @map("_id") @test.ObjectId
+  name       String
+  categoryId String   @test.ObjectId
+  category   Category @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
+}
