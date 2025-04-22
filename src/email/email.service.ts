@@ -32,4 +32,27 @@ export class EmailService {
 
     await this.transporter.sendMail(mailOptions);
   }
+
+  async sendOtp(email: string, otp:string) {
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'OTP Recieved',
+      template:'OTP',
+     context:{
+        otp:otp
+     },
+     attachments: [
+        {
+          filename: 'logo.png',
+          path: "/home/keymouseit/Desktop/ecommerce-nest/src/email/images/images.png",
+          cid: 'logo'
+        }
+      ]
+    };
+  
+
+    await this.transporter.sendMail(mailOptions);
+  }
 }

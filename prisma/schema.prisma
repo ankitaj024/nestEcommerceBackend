@@ -14,6 +14,7 @@ model User{
   email    String @unique
   password String
   phoneNumber Int
+  Otp Int?
   isAdmin Boolean? @default(false)
   address String? @default("")
   createdAt DateTime @default(now())
