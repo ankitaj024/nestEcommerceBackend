@@ -13,7 +13,7 @@ model User{
   name     String
   email    String @unique
   password String
-  phoneNumber Int
+  phoneNumber Int?
   Otp Int?
   isAdmin Boolean? @default(false)
   address String? @default("")

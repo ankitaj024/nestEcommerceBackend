@@ -29,7 +29,7 @@ import {
     @Matches(/^\d{10}$/, {
       message: 'Phone number must be exactly 10 digits',
     })
-    phoneNumber: string;
+    phoneNumber: number;
   
     @IsOptional()
     @IsString()

@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateAuthDto } from './dto/create-auth-dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('user')
 export class UserController {
@@ -57,5 +58,19 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.deleteUser(id);
+  }
+
+  //SIGN-IN WITH GOOGLE
+  @Get("/google")
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(){
+    //redirect to google
+  }
+
+  //USER CREATE API WITH GOOGLE SIGN_IN
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  googleAuthRedirect(@Req() req){
+    return this.userService.googleLoginAndCreateUser(req)
   }
 }

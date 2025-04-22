@@ -195,7 +195,7 @@ export class UserService {
   }
 
   //DELETE USER SERVICE
-  async deleteUser(id:string){
+  async deleteUser(id: string) {
     try {
       const findUser = await this.prisma.user.findUnique({
         where: {
@@ -212,7 +212,42 @@ export class UserService {
       return {
         status: HttpStatus.ACCEPTED,
         message: 'User Successfully deleted',
-        deletedUser : findUser
+        deletedUser: findUser,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  //SIGN IN WITH GOOGLE AND CREATE USER
+  async googleLoginAndCreateUser(req) {
+    try {
+      const { email, firstName, picture, accessToken } = req.user;
+      let userCreateData;
+      const findUser = await this.prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+      });
+      if (!findUser) {
+        const userCreateData = await this.prisma.user.create({
+          data: {
+            email: email,
+            name: firstName,
+            password: 'GOOGLE_AUTH',
+            phoneNumber: null,
+          },
+        });
+      }
+
+      return {
+        status: HttpStatus.CREATED,
+        message: 'login successfull',
+        access_token: accessToken,
+        userData: userCreateData,
       };
     } catch (error) {
       throw new HttpException(
