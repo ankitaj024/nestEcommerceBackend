@@ -9,43 +9,74 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
 export class CreateUserDto {
-  @IsNotEmpty() // name should not be empty
-  @IsString() // name should be a string data type
+  @ApiProperty({
+    description: 'Full name of the user (2-30 characters, letters and spaces only)',
+    example: 'John Doe',
+  })
+  @IsNotEmpty()
+  @IsString()
   @Matches(/^[a-zA-Z\s]{2,30}$/, {
     message:
       'Name must be 2-30 characters long and only contain letters and spaces',
-  }) // name should match the required regex
+  })
   name: string;
 
-  @IsNotEmpty() // should not empty
-  @IsString() // should be a string data
-  @IsEmail({}, { message: 'Email must be valid' }) // should be a valid formate that include "@" and "."
+  @ApiProperty({
+    description: 'Valid email address',
+    example: 'john@example.com',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @IsEmail({}, { message: 'Email must be valid' })
   email: string;
 
-  @IsNotEmpty() // should not be empty
-  @IsString() // should be a string
+  @ApiProperty({
+    description:
+      'Password must be at least 6 characters, including at least one letter and one number',
+    example: 'Password123',
+  })
+  @IsNotEmpty()
+  @IsString()
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/, {
     message:
       'Password must be at least 6 characters, including at least one letter and one number',
   })
   password: string;
 
-  @IsNotEmpty() // should not be empty
-  @IsNumber() // should be a number type , not string
-  @Min(1000000000, { message: 'Phone number must be exactly 10 digits' }) // smallest 10-digit number
-  @Max(9999999999, { message: 'Phone number must be exactly 10 digits' }) // largest 10-digit number
+  @ApiProperty({
+    description: '10-digit phone number',
+    example: 9876543210,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1000000000, { message: 'Phone number must be exactly 10 digits' })
+  @Max(9999999999, { message: 'Phone number must be exactly 10 digits' })
   phoneNumber: number;
 
+  @ApiPropertyOptional({
+    description: 'Whether the user is an admin or not',
+    example: false,
+  })
   @IsOptional()
-  @IsBoolean() // optional
+  @IsBoolean()
   isAdmin: boolean;
 
-  @IsOptional() // optional
-  @IsString() // should be a string
-  address: string;
-
+  @ApiPropertyOptional({
+    description: 'User address (optional)',
+    example: '123 Main St, Springfield',
+  })
   @IsOptional()
   @IsString()
-  profileImg:string;
+  address: string;
+
+  @ApiPropertyOptional({
+    description: 'URL or path to the user profile image',
+    example: 'https://example.com/images/user.png',
+  })
+  @IsOptional()
+  @IsString()
+  profileImg: string;
 }

@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy.auth';
 import { GoogleStrategy } from './strategy/google.strategy.';
+import { JwtAuthGuard } from './guards/jwt.auth.guard';
 
 @Module({
   imports:[JwtModule.register({
@@ -11,7 +12,7 @@ import { GoogleStrategy } from './strategy/google.strategy.';
     signOptions:{expiresIn:'3h'}
   })],
   // controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
-  exports:[AuthService, JwtModule, GoogleStrategy]
+  providers: [AuthService, JwtStrategy, GoogleStrategy, JwtAuthGuard],
+  exports:[AuthService, JwtModule, GoogleStrategy, JwtAuthGuard]
 })
 export class AuthModule {}

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import * as nodemailer from 'nodemailer';
 import { EMAIL_TRANSPORTER } from './email.constant';
-import  hbs from 'nodemailer-express-handlebars';
+import   hbs from 'nodemailer-express-handlebars';
 import * as path from 'path';
 
 @Module({
