@@ -44,4 +44,8 @@ export class CreateUserDto {
   @IsOptional() // optional
   @IsString() // should be a string
   address: string;
+
+  @IsOptional()
+  @IsString()
+  profileImg:string;
 }

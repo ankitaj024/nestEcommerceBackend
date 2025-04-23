@@ -1,6 +1,6 @@
-
 generator client {
   provider = "prisma-client-js"
+   
 }
 
 datasource db {
@@ -8,30 +8,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id       String @id @default(auto()) @map("_id") @db.ObjectId  
-  name     String
-  email    String @unique
-  password String
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId  
+  name        String
+  email       String   @unique
+  password    String
   phoneNumber Int
-  isAdmin Boolean? @default(true)
-  address String? @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  Otp         Int?
+  isAdmin     Boolean? @default(false)
+  address     String?  @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-
-
 model Category {
-  id            String        @id @default(auto()) @map("_id") @test.ObjectId
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   description   String?
+  image         String?       // optional image URL or path
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   subcategories Subcategory[] @relation("CategoryToSubcategory")
 }
 
 model Subcategory {
-  id         String   @id @default(auto()) @map("_id") @test.ObjectId
-  name       String
-  categoryId String   @test.ObjectId
-  category   Category @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  image       String?     // Optional image field
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  categoryId  String      @db.ObjectId
+  category    Category    @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
 }
