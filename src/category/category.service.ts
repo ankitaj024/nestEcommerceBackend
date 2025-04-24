@@ -81,15 +81,17 @@ export class CategoryService {
   }
 
   // getting all categories
-
-  async getCategories() {
+  async getAllCategories() {
     try {
       const categories = await this.prisma.category.findMany({
-        select: {
-          name: true,
-          description: true,
-          image: true,
-        },
+        
+        
+          select: {
+            name: true,
+            description: true,
+            image: true,
+          },
+        
       });
 
       if (!categories || categories.length === 0) {
@@ -99,13 +101,191 @@ export class CategoryService {
       return categories;
     } catch (error) {
       console.error('Error fetching categories:', error);
-
+ 
       throw new HttpException(
         'An error occurred while fetching categories',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+  // getting product of all categories 
+
+  async getProductsOfALLCategory() {
+    try {
+      
+      const categories = await this.prisma.category.findMany({
+        include: {
+          products: {
+            select: {
+              id: true,               
+              title: true,            
+              description: true,      
+              price: true,            
+              discountPrice: true,    
+              discountPercentage: true,
+              stock: true,           
+              images: true,           
+              createdAt: true,       
+              updatedAt: true,        
+              subcategory: {          
+                select: {
+                  name: true,
+                  description: true,
+                }
+              },
+              brand: {              
+                select: {
+                  name: true,
+                  logo: true,          
+                }
+              },
+              reviews: {              
+                select: {
+                  id: true,
+                  rating: true,
+                  comment: true,
+                  createdAt: true
+                }
+              },
+              colors: {           
+                select: {
+                  name: true,
+                }
+              },
+              sizes: {                
+                select: {
+                  name: true,
+                }
+              },
+              specifications: {       
+                select: {
+                  name: true,
+                  value: true
+                }
+              }
+            }
+          }
+        }
+      });
+  
+      
+      if (!categories || categories.length === 0) {
+        throw new HttpException('No categories found', HttpStatus.NOT_FOUND);
+      }
+  
+     
+      return categories;
+    } catch (error) {
+      
+      console.error('Error fetching categories:', error.message || error);
+  
+   
+      if (error instanceof HttpException) {
+        
+        throw error;
+      } else {
+        
+        throw new HttpException(
+          'An error occurred while fetching categories. Please try again later.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  // getting daat by subcategory 
+
+
+  async getProductBySubCategory(categoryName: string, subcategoryName: string) {
+    try {
+      // Step 1: Find the category (case-insensitive)
+      const category = await this.prisma.category.findFirst({
+        where: {
+          name: {
+            equals: categoryName,
+            mode: 'insensitive',
+          },
+        },
+      });
+  
+      if (!category) {
+        throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+      }
+  
+      // Step 2: Find the subcategory within that category (case-insensitive)
+      const subcategory = await this.prisma.subcategory.findFirst({
+        where: {
+          name: {
+            equals: subcategoryName,
+            mode: 'insensitive',
+          },
+          categoryId: category.id,
+        },
+      });
+  
+      if (!subcategory) {
+        throw new HttpException('Subcategory not found in the specified category', HttpStatus.NOT_FOUND);
+      }
+  
+      // Step 3: Find products that belong to both the category and the subcategory
+      const products = await this.prisma.product.findMany({
+        where: {
+          categoryId: category.id,
+          subcategoryId: subcategory.id,
+        },
+        include: {
+          brand: {
+            select: {
+              name: true,
+              logo: true,
+            },
+          },
+          colors: {
+            select: {
+              name: true,
+            },
+          },
+          sizes: {
+            select: {
+              name: true,
+            },
+          },
+          reviews: {
+            select: {
+              rating: true,
+              comment: true,
+            },
+          },
+          specifications: {
+            select: {
+              name: true,
+              value: true,
+            },
+          },
+        },
+      });
+  
+      if (!products || products.length === 0) {
+        throw new HttpException('No products found for the specified category and subcategory', HttpStatus.NOT_FOUND);
+      }
+  
+      return products;
+    } catch (error) {
+      console.error('Error fetching products by subcategory:', error.message || error);
+  
+      if (error instanceof HttpException) {
+        throw error;
+      }
+  
+      throw new HttpException(
+        'Failed to fetch products by subcategory. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+  
+
+  
 
   // updating the category
 

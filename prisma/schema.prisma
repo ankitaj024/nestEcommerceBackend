@@ -19,6 +19,7 @@ model User {
   address     String?  @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  reviews     Review[]
 }
 
 model Category {
@@ -29,6 +30,7 @@ model Category {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   subcategories Subcategory[] @relation("CategoryToSubcategory")
+  products      Product[] @relation("CategoryToProduct")
 }
 
 model Subcategory {
@@ -40,4 +42,102 @@ model Subcategory {
   updatedAt   DateTime    @updatedAt
   categoryId  String      @db.ObjectId
   category    Category    @relation("CategoryToSubcategory", fields: [categoryId], references: [id])
+  products    Product[]  @relation("SubcategoryToProduct")
 }
+
+// Product
+model Product {
+  id                 String                @id @default(auto()) @map("_id") @db.ObjectId
+  title              String
+  description        String
+  price              Float
+  discountPrice      Float?
+  discountPercentage Int?
+  stock              Int
+ 
+  images             String[]
+  
+ 
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  // Foreign Keys
+  categoryId         String                @db.ObjectId
+  subcategoryId      String                @db.ObjectId
+  brandId            String                @db.ObjectId
+
+  // Relations
+  category           Category              @relation("CategoryToProduct", fields: [categoryId], references: [id])
+  subcategory        Subcategory           @relation("SubcategoryToProduct", fields: [subcategoryId], references: [id])
+  brand              Brand                 @relation(fields: [brandId], references: [id])
+ 
+  reviews            Review[]
+
+  colors             ProductColor[]
+  sizes              ProductSize[]
+  specifications     ProductSpecification[]
+}
+
+
+
+model ProductColor {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   // "Volt"
+  hexCode   String   // hex color value, e.g., "#FF5733"
+
+  productId String   @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+
+enum Rating {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating     Rating   // Rating is now constrained to ONE, TWO, THREE, FOUR, FIVE
+  comment    String?
+  images     String[]
+  userId     String   @db.ObjectId
+  productId  String   @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  // Relations
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+
+
+model Brand {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String    @unique
+  logo     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model ProductSize {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model ProductSpecification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String   // e.g., "Material"
+  value     String   // e.g., "Cotton"
+
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
