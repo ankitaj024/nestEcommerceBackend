@@ -28,5 +28,6 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document); 
 
   await app.listen(process.env.PORT ?? 5000);
+  console.log('http://localhost:5000')
 }
 bootstrap();
