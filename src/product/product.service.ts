@@ -1,30 +1,3 @@
-<<<<<<< HEAD
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-
-@Injectable()
-export class ProductService {
-  constructor(private readonly prisma:PrismaService){}
-
-  async create(createProductDto: CreateProductDto) {
-    try{
-      const createProduct = await this.prisma.Product.create({data:createProductDto})
-      return{
-        status:HttpStatus.CREATED,
-        message:"Product added successfully",
-        productDetail : createProduct
-      }
-    }
-    catch(error){
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
-      )
-    }
-  }
-
-=======
 import { Injectable , HttpException,HttpStatus} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -88,7 +61,6 @@ export class ProductService {
 
   
 
->>>>>>> origin/ajay
   findAll() {
     return `This action returns all product`;
   }

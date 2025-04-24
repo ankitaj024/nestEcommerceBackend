@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-import { IsInt, IsString, IsNotEmpty } from 'class-validator';
-
-export class CreateProductDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsInt()
-  @IsNotEmpty()
-  price: number;
-=======
 import {
   IsString,
   IsOptional,
@@ -78,5 +66,4 @@ export class CreateProductDto {
   @IsString({ message: 'Brand ID must be a string' })
   @IsNotEmpty({ message: 'Brand ID is required' })
   brandId: string;
->>>>>>> origin/ajay
 }
