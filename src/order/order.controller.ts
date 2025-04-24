@@ -16,6 +16,13 @@ export class OrderController {
     return this.orderService.create(userId,createOrderDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('/razorpay')
+  createUsingRazorpay(@Req() request:Request, @Body() createOrderDto: CreateOrderDto) {
+    const userId = request.user.id
+    return this.orderService.createUsingRazorpay(userId,createOrderDto);
+  }
+
   //getOrders API
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -23,6 +30,13 @@ export class OrderController {
     const userId = request.user.id;
     return this.orderService.findOrderOfUser(userId)
   }
+
+  //webhook for razorpay
+  @Post('/razorpay/webhook')
+  orderCreateByRazorpayLink(@Req() req){
+    return this.orderService.orderCreateByPaymentLinkResponse(req)
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

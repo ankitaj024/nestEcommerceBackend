@@ -5,6 +5,6 @@ export class CreateOrderDto {
       @IsNotEmpty()
       address: string;
 
-      @IsNotEmpty()
+      
       token:string
 }
