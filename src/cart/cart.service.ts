@@ -24,7 +24,7 @@ export class CartService {
           userId,
         },
       });
-      const unitPrice = product.price;
+      const unitPrice = product.discountPrice;
       const additionalPrice = unitPrice * createCartDto.quantity;
       const newItem = {
         productId: createCartDto.productId,

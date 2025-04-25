@@ -93,18 +93,20 @@ export class OrderService {
       }
       const user = await this.prisma.user.findFirst({
         where: {
-          id:userId,
+          id: userId,
         },
       });
+
+      const roundedTotalPrice = Math.round(cart.totalPrice);
       const link = await razorpayInstance.paymentLink.create({
-        amount: cart.totalPrice,
+        amount: roundedTotalPrice * 100,
         currency: 'INR',
         accept_partial: false,
         description: 'Order Payment Link',
         customer: {
           name: user.name,
           email: user.email,
-          contact: "9782140552",
+          contact: '9782140552',
         },
         notify: {
           sms: true,
@@ -132,7 +134,7 @@ export class OrderService {
         paymentLink: link.short_url,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new HttpException(
         error.message,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -205,21 +207,5 @@ export class OrderService {
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-
-  findAll() {
-    return `This action returns all order`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
   }
 }
