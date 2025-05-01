@@ -15,11 +15,23 @@ export class UserService {
   async createUser(createUserDto: CreateUserDto) {
     try {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const existingUser = await this.prisma.user.findUnique({
+        where: {
+          email: createUserDto.email,
+        },
+      }); 
+      if (existingUser) {
+        throw new HttpException(
+          'User already exists with this email',
+          HttpStatus.CONFLICT,
+        );
+      }
 
       const userCreated = await this.prisma.user.create({
         data: {
           ...createUserDto,
           password: hashedPassword,
+          phoneNumber:8095641523,
         },
       });
 
@@ -66,7 +78,7 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         message: 'OTP send Successfully , Check your mail',
-        mailedEmail: email,
+        Email_Send_To: email,
       };
     } catch (error) {
       throw new HttpException(
@@ -232,13 +244,24 @@ export class UserService {
           email: email,
         },
       });
+      if(findUser) {
+        userCreateData = await this.prisma.user.update({
+          where: {
+            email: email,
+          },
+          data: {
+            name: firstName,
+            profilePicture: picture,
+          },
+        });
+      }
       if (!findUser) {
         const userCreateData = await this.prisma.user.create({
           data: {
             email: email,
             name: firstName,
             password: 'GOOGLE_AUTH',
-            phoneNumber: null,
+            phoneNumber: 1234567890,
           },
         });
       }
@@ -248,6 +271,7 @@ export class UserService {
         message: 'login successfull',
         access_token: accessToken,
         userData: userCreateData,
+        userId: userCreateData.id,
       };
     } catch (error) {
       throw new HttpException(

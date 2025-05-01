@@ -17,6 +17,9 @@ import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { ProductSubPartsModule } from './product-sub-parts/product-sub-parts.module';
 import { FilterModule } from './filter/filter.module';
+import { WhishlistModule } from './whishlist/whishlist.module';
+import { PdfService } from './utils/pdf/pdf.service';
+import { PdfModule } from './utils/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -32,8 +35,10 @@ import { FilterModule } from './filter/filter.module';
     SubCategoryModule,
     ProductSubPartsModule,
     FilterModule,
+    WhishlistModule,
+    PdfModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, PdfService],
 })
 export class AppModule {}

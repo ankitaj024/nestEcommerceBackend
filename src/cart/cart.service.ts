@@ -30,7 +30,15 @@ export class CartService {
         productId: createCartDto.productId,
         quantity: createCartDto.quantity,
         price: additionalPrice,
+        productName: product.title,
       };
+
+      if(product.stock < createCartDto.quantity) {
+        throw new HttpException(
+          'Product stock is not sufficient',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
       if (!cart) {
         cart = await this.prisma.cart.create({
@@ -87,7 +95,7 @@ export class CartService {
         },
       });
       if (!cart) {
-        throw new HttpException('Cart is empty', HttpStatus.NOT_FOUND);
+        return {message:"Cart is empty"}
       }
       return {
         status: HttpStatus.OK,
@@ -103,7 +111,7 @@ export class CartService {
   }
 
   //Remove from cart Service
-  async removeFromCart(userId: any, productId: any) {
+  async removeProductQuantityFromCart(userId: any, productId: any) {
     try {
       const cart = await this.prisma.cart.findFirst({
         where: {
@@ -116,7 +124,8 @@ export class CartService {
       }
       let items: any[] = cart.items as any[];
       const index = items.findIndex((item) => {
-        return item.productId == productId.productId;
+        // console.log(productId)
+        return item.productId == productId;
       });
       if (index === -1) {
         throw new HttpException(
@@ -158,6 +167,62 @@ export class CartService {
       );
     }
   }
+
+  //Product remove from cart Service
+  async removeProductFromCart(userId: any, productId: any) {
+    try {
+      const cart = await this.prisma.cart.findFirst({
+        where: {
+          userId,
+        },
+      });
+  
+      if (!cart) {
+        throw new HttpException('Cart not found', HttpStatus.NOT_FOUND);
+      }
+  
+      let items: any[] = cart.items as any[];
+  
+      const index = items.findIndex((item) => item.productId == productId);
+  
+      if (index === -1) {
+        throw new HttpException(
+          'Product not found in cart',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+  
+      const removedItem = items[index];
+  
+      const quantityToReduce = removedItem.quantity || 0;
+      const priceToReduce = removedItem.price || 0;
+  
+      // Remove the item completely
+      items.splice(index, 1);
+  
+      const updatedCart = await this.prisma.cart.update({
+        where: {
+          id: cart.id,
+        },
+        data: {
+          items,
+          totalQuantity: Math.max(0, cart.totalQuantity - quantityToReduce),
+          totalPrice: Math.max(0, cart.totalPrice - priceToReduce),
+        },
+      });
+  
+      return {
+        message: 'Product removed from cart successfully',
+        cart: updatedCart,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  
 
   //Delete cart Service
   async deleteCart(userId: any) {

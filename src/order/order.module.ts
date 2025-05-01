@@ -4,9 +4,10 @@ import { OrderController } from './order.controller';
 import { CartService } from 'src/cart/cart.service';
 import { CartModule } from 'src/cart/cart.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
-  imports:[CartModule, AuthModule],
+  imports:[CartModule, AuthModule, EmailModule],
   controllers: [OrderController],
   providers: [OrderService, CartService],
 })

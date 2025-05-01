@@ -50,7 +50,7 @@ export class CreateUserDto {
     description: '10-digit phone number',
     example: 9876543210,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(1000000000, { message: 'Phone number must be exactly 10 digits' })
   @Max(9999999999, { message: 'Phone number must be exactly 10 digits' })
@@ -78,5 +78,5 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsString()
-  profileImg: string;
+  profilePicture: string;
 }

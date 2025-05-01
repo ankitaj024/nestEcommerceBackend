@@ -8,20 +8,21 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  email       String   @unique
-  password    String
-  phoneNumber Int
-  Otp         Int?
-  profileImg  String?
-  isAdmin     Boolean? @default(false)
-  address     String?  @default("")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  reviews     Review[]
-  Cart        Cart[]
-  Order       Order[]
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String      @unique
+  password       String
+  phoneNumber    Int
+  Otp            Int?
+  profilePicture String?
+  isAdmin        Boolean?    @default(false)
+  address        String?     @default("")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  reviews        Review[]
+  Cart           Cart[]
+  Order          Order[]
+  Whishlist      Whishlist[]
 }
 
 model Category {
@@ -157,7 +158,17 @@ model Order {
   address       String
   chargeId      String?
   paymentLinkId String?
+  transactionId String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id])
+}
+
+model Whishlist {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  items     Json
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }

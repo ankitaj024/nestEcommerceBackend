@@ -39,7 +39,7 @@ export class CartController {
 
   // Remove from cart API
   @UseGuards(JwtAuthGuard)
-  @Delete()
+  @Delete('/quantity')
   @ApiOperation({ summary: 'Remove a product from cart' })
   @ApiBody({ schema: {
     type: 'object',
@@ -50,10 +50,29 @@ export class CartController {
       }
     }
   }})
+  @Delete('/quantity')
   removeFromCart(@Req() request: Request, @Body() body: { productId: string }) {
     const userId = (request as any).user.id;
-    return this.cartService.removeFromCart(userId, body.productId);
+    return this.cartService.removeProductQuantityFromCart(userId, body.productId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/remove')
+  @ApiOperation({ summary: 'Remove a product from cart' })
+  @ApiBody({ schema: {
+    type: 'object',
+    properties: {
+      productId: {
+        type: 'string',
+        example: '66087289d53acdb9de601c99'
+      }
+    }
+  }})
+  removeProductFromCart(@Req() request: Request, @Body() body: { productId: string }) {
+    const userId = (request as any).user.id;
+    return this.cartService.removeProductFromCart(userId, body.productId);
+  }
+
 
   // Delete entire cart API
   @UseGuards(JwtAuthGuard)

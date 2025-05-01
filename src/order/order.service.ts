@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { EmailService } from 'src/email/email.service';
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -18,6 +19,7 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cartService: CartService,
+     private readonly emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
@@ -88,6 +90,14 @@ export class OrderService {
           userId,
         },
       });
+      const productIds = cart.items.map((item) => item.productId);
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: productIds,
+          },
+        },
+      });
       if (!cart || !cart.items) {
         throw new HttpException('Cart is empty', HttpStatus.BAD_REQUEST);
       }
@@ -155,7 +165,10 @@ export class OrderService {
       if (signature !== generatedSignature) {
         throw new HttpException('Invalid Signature', HttpStatus.UNAUTHORIZED);
       }
+
       const payload = req.body;
+      const paymentId = payload.payload.payment.entity.id;
+      
 
       if (payload.event === 'payment_link.paid') {
         const paymentLinkId = payload.payload.payment_link.entity.id;
@@ -164,26 +177,67 @@ export class OrderService {
           where: {
             paymentLinkId,
             status: 'Pending',
+            
           },
           data: {
             status: 'Payment Successful',
+            transactionId: paymentId
           },
         });
+
         const order = await this.prisma.order.findFirst({
           where: { paymentLinkId },
         });
 
-        await this.cartService.deleteCart(order.userId);
+        if (!order) {
+          throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+        }
 
+        const productIds = order.items.map((item) => item.productId);
+        const products = await this.prisma.product.findMany({
+          where: {
+            id: {
+              in: productIds,
+            },
+          },
+        });
+
+        await this.prisma.$transaction(
+          products.map((product) => {
+            const cartItem = order.items.find(
+              (item) => item.productId === product.id,
+            );
+            const newStock = product.stock - cartItem.quantity;
+
+            if (newStock < 0) {
+              throw new Error(
+                `Insufficient stock for product ${product.title}`,
+              );
+            }
+
+            return this.prisma.product.update({
+              where: { id: product.id },
+              data: { stock: newStock },
+            });
+          }),
+        );
+
+        await this.cartService.deleteCart(order.userId);
+        const userId = order.userId
+       const user =  await this.prisma.user.findFirst({
+          where: { id: userId },
+        })
+        await this.emailService.sendOrderConfirmationEmail(user.name, user.email, order.id, order.items, order.totalPrice)
+      
         return {
           status: HttpStatus.CREATED,
-          message: 'Order Successfull',
+          message: 'Order Successful & Stock Updated',
           orderDetails: order,
         };
       }
     } catch (error) {
       throw new HttpException(
-        error.message,
+        error.message || 'Internal Server Error',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

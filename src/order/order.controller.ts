@@ -24,7 +24,7 @@ export class OrderController {
   @ApiOperation({ summary: 'Create a new order using card/token' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   @UseGuards(JwtAuthGuard)
-  @Post()
+  @Post("/stripe")
   create(@Req() request: Request, @Body() createOrderDto: CreateOrderDto) {
     const userId = request.user.id;
     return this.orderService.create(userId, createOrderDto);
