@@ -13,7 +13,7 @@ export class SubCategoryController {
   }
 
  
-  @Post('/createMany')
+  @Post('/create-many')
   async createMany(@Body() createSubCategoryDto: CreateSubcategoryDto[]) {
     const result = await this.subCategoryService.createMany(createSubCategoryDto);
     return result;

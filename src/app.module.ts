@@ -16,7 +16,8 @@ import { OrderModule } from './order/order.module';
 import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { ProductSubPartsModule } from './product-sub-parts/product-sub-parts.module';
-import { FilterModule } from './filter/filter.module';
+import { PromocodeModule } from './promocode/promocode.module';
+
 
 @Module({
   imports: [
@@ -31,7 +32,10 @@ import { FilterModule } from './filter/filter.module';
     CategoryModule,
     SubCategoryModule,
     ProductSubPartsModule,
-    FilterModule,
+    PromocodeModule,
+  
+   
+    
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 
 @Controller('cart')
@@ -22,7 +21,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   @Get()
   getCart(@Req() request:Request){
-    const userId = request.user.id;
+    const userId = ( request as any ).user.id;
     return this.cartService.getCartData(userId)
   }
 
@@ -31,7 +30,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   @Post()
   addToCart(@Req() request: Request, @Body() createCartDto: CreateCartDto) {
-    const userId = request.user.id;
+    const userId = ( request as any ).user.id;
     return this.cartService.addToCart(userId, createCartDto);
   }
 
@@ -41,7 +40,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   @Delete()
   removeFromCart(@Req() request:Request, @Body() productId:string){
-    const userId = request.user.id;
+    const userId = ( request as any ).user.id;
     return this.cartService.removeFromCart(userId, productId)
   }
 
@@ -49,7 +48,7 @@ export class CartController {
   @UseGuards(JwtAuthGuard)
   @Delete("/cart-delete")
   deleteCart(@Req() request:Request){
-    const userId = request.user.id;
+    const userId = ( request as any ).user.id;
     return this.cartService.deleteCart(userId)
   }
 

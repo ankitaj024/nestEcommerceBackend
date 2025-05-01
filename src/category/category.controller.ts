@@ -24,7 +24,7 @@ export class CategoryController {
   }
 
   // getting all  category
-@Get('/all')
+@Get('/all-categories')
 getcategories(){
   return this.categoryService.getAllCategories();
 }
@@ -32,7 +32,7 @@ getcategories(){
 
 //getting all products in store along with categories
 
-  @Get('/AllProduct')
+  @Get('/all-products')
   findAll() {
     return this.categoryService.getProductsOfALLCategory();
   }
@@ -44,7 +44,7 @@ getcategories(){
     return this.categoryService.getSubcategoriesByCategoryName(name);
   }
 
-  // getting all products associated with subacategory of an category
+  // getting all products associated with subcategory of an category
 
   @Get('/:name/:subname')
   getProductBySubCategory(@Param('name') name: string , @Param('subname') subname: string) {

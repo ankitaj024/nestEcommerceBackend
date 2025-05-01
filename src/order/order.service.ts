@@ -4,8 +4,11 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CartService } from 'src/cart/cart.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
-import Razorpay from 'razorpay';
+import Razorpay = require('razorpay');
+import { Request, Response } from 'express';
+
 import crypto from 'crypto';
+import { PaypalService } from './paypal.service';
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -16,6 +19,7 @@ const razorpayInstance = new Razorpay({
 export class OrderService {
   private stripe: Stripe;
   constructor(
+    private readonly Paypalservice: PaypalService,
     private readonly prisma: PrismaService,
     private readonly cartService: CartService,
   ) {
@@ -53,7 +57,11 @@ export class OrderService {
       }
 
       // console.log(paymentIntent)
-      const chargeId = paymentIntent.latest_charge;
+      const chargeId =
+        typeof paymentIntent.latest_charge === 'string'
+          ? paymentIntent.latest_charge
+          : paymentIntent.latest_charge?.id;
+
       const order = await this.prisma.order.create({
         data: {
           userId: userId,
@@ -93,7 +101,7 @@ export class OrderService {
       }
       const user = await this.prisma.user.findFirst({
         where: {
-          id:userId,
+          id: userId,
         },
       });
       const link = await razorpayInstance.paymentLink.create({
@@ -104,7 +112,7 @@ export class OrderService {
         customer: {
           name: user.name,
           email: user.email,
-          contact: "9782140552",
+          contact: '9782140552',
         },
         notify: {
           sms: true,
@@ -132,7 +140,7 @@ export class OrderService {
         paymentLink: link.short_url,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new HttpException(
         error.message,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -205,6 +213,76 @@ export class OrderService {
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  // applying the paypal payament method integration
+
+  async createUsingPaypal(userId: any, createOrderDto: CreateOrderDto) {
+    const cart = await this.prisma.cart.findFirst({ where: { userId } });
+    if (!cart || !cart.items)
+      throw new HttpException('Cart is empty', HttpStatus.BAD_REQUEST);
+
+    const paypalOrder = await this.Paypalservice.createOrder(cart.totalPrice);
+    const orderId = paypalOrder.id;
+
+    const order = await this.prisma.order.create({
+      data: {
+        userId,
+        items: cart.items,
+        totalPrice: cart.totalPrice,
+        totalQuantity: cart.totalQuantity,
+        address: createOrderDto.address,
+        status: 'Pending',
+        paymentLinkId: orderId,
+      },
+    });
+
+    return {
+      status: HttpStatus.CREATED,
+      orderId,
+      approvalLink: paypalOrder.links.find((link) => link.rel === 'approve')
+        ?.href,
+    };
+  }
+
+  async handlePaypalWebhook(req: Request, res: Response) {
+    const event = req.body;
+
+    if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
+      const orderId = event.resource.supplementary_data.related_ids.order_id;
+
+      await this.prisma.order.updateMany({
+        where: { paymentLinkId: orderId, status: 'Pending' },
+        data: { status: 'Payment Successful' },
+      });
+
+      const order = await this.prisma.order.findFirst({
+        where: { paymentLinkId: orderId },
+      });
+
+      await this.cartService.deleteCart(order.userId);
+
+      return res.status(200).json({ message: 'Order paid and confirmed.' });
+    }
+
+    if (
+      event.event_type === 'PAYMENT.CAPTURE.DENIED' ||
+      event.event_type === 'PAYMENT.CAPTURE.REVERSED'
+    ) {
+      const orderId = event.resource.supplementary_data.related_ids.order_id;
+      console.log('webhook');
+
+      await this.prisma.order.updateMany({
+        where: { paymentLinkId: orderId, status: 'Pending' },
+        data: { status: 'Payment Canceled' },
+      });
+
+      return res
+        .status(200)
+        .json({ message: 'Payment canceled or failed, order updated.' });
+    }
+
+    return res.status(200).json({ message: 'Webhook event received.' });
   }
 
   findAll() {
