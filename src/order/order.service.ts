@@ -90,6 +90,7 @@ export class OrderService {
           userId,
         },
       });
+      // console.log(cart);
       const productIds = cart.items.map((item) => item.productId);
       const products = await this.prisma.product.findMany({
         where: {

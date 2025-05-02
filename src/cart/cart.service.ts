@@ -14,70 +14,123 @@ export class CartService {
           id: createCartDto.productId,
         },
       });
-
+  
       if (!product) {
         throw new HttpException('No such product Found', HttpStatus.NOT_FOUND);
       }
-
-      let cart = await this.prisma.cart.findFirst({
-        where: {
-          userId,
-        },
-      });
-      const unitPrice = product.discountPrice;
-      const additionalPrice = unitPrice * createCartDto.quantity;
-      const newItem = {
-        productId: createCartDto.productId,
-        quantity: createCartDto.quantity,
-        price: additionalPrice,
-        productName: product.title,
-      };
-
-      if(product.stock < createCartDto.quantity) {
+  
+      if (product.stock < createCartDto.quantity) {
         throw new HttpException(
           'Product stock is not sufficient',
           HttpStatus.BAD_REQUEST,
         );
       }
+  
+      const shippingPrice = 40;
+      const GST_RATE = 0.18;
+  
+      const unitPrice = product.discountPrice;
+      const quantity = createCartDto.quantity;
+      const newItemSubtotal = unitPrice * quantity;
+  
+      const newItem = {
+        productId: createCartDto.productId,
+        quantity,
+        price: product.price,
+        productName: product.title,
+        productImage: product.images,
+      };
 
+      
+  
+      let cart = await this.prisma.cart.findFirst({
+        where: { userId },
+      });
+  
       if (!cart) {
+        const gstAmount = newItemSubtotal * GST_RATE;
+        const totalPrice = newItemSubtotal + gstAmount + shippingPrice;
+  
+        const breakdown = {
+          subtotal: newItemSubtotal,
+          gstAmount,
+          shippingPrice,
+          totalPrice,
+        };
         cart = await this.prisma.cart.create({
           data: {
             userId,
-            totalPrice: additionalPrice,
-            totalQuantity: newItem.quantity,
+            totalPrice,
+            totalQuantity: quantity,
             items: [newItem],
+            breakdown:breakdown,
+
           },
         });
+  
+        return {
+          status: HttpStatus.CREATED,
+          message: 'Added to cart successfully',
+          cartDetails: cart,
+          breakdown: {
+            subtotal: newItemSubtotal,
+            gstAmount,
+            shippingPrice,
+            totalPrice,
+          },
+        };
       } else {
         let items: any[] = cart.items as any[];
         const index = items.findIndex(
           (item) => item.productId === createCartDto.productId,
         );
-
+  
         if (index > -1) {
-          (items[index].quantity += createCartDto.quantity),
-            (items[index].price += additionalPrice);
+          items[index].quantity += quantity;
         } else {
           items.push(newItem);
         }
-
+  
+        const existingSubtotal = items.reduce(
+          (sum, item) => sum + item.price* item.quantity,
+          0,
+        );
+  
+        const gstAmount = existingSubtotal * GST_RATE;
+        const totalPrice = existingSubtotal + gstAmount + shippingPrice;
+        const totalQuantity = items.reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
+  
+        const breakdown = {
+          subtotal: existingSubtotal,
+          gstAmount,
+          shippingPrice,
+          totalPrice,
+        };
         cart = await this.prisma.cart.update({
-          where: {
-            id: cart.id,
-          },
+          where: { id: cart.id },
           data: {
             items,
-            totalPrice: cart.totalPrice + additionalPrice,
-            totalQuantity: cart.totalQuantity + newItem.quantity,
+            totalPrice,
+            totalQuantity,
+            breakdown:breakdown,
           },
         });
+  
+        return {
+          status: HttpStatus.CREATED,
+          message: 'Added to cart successfully',
+          cartDetails: cart,
+          breakdown: {
+            subtotal: existingSubtotal,
+            gstAmount,
+            shippingPrice,
+            totalPrice,
+          },
+        };
       }
-      return {
-        status: HttpStatus.CREATED,
-        message: 'Add to cart Successfully',
-        cartDetails: cart,
-      };
     } catch (error) {
       throw new HttpException(
         error.message,
@@ -85,6 +138,7 @@ export class CartService {
       );
     }
   }
+  
 
   //Get card Service
   async getCartData(userId: any) {
@@ -100,7 +154,8 @@ export class CartService {
       return {
         status: HttpStatus.OK,
         message: 'Cart Fetched Successfully',
-        cartData: cart,
+        cartDetails: cart,
+        breakdown: cart.breakdown,
       };
     } catch (error) {
       throw new HttpException(
@@ -118,47 +173,72 @@ export class CartService {
           userId,
         },
       });
-      // console.log(productId)
+  
       if (!cart) {
         throw new HttpException('Cart not found', HttpStatus.NOT_FOUND);
       }
+  
       let items: any[] = cart.items as any[];
-      const index = items.findIndex((item) => {
-        // console.log(productId)
-        return item.productId == productId;
-      });
+      const index = items.findIndex((item) => item.productId === productId);
+  
       if (index === -1) {
-        throw new HttpException(
-          'Product not found in cart',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Product not found in cart', HttpStatus.NOT_FOUND);
       }
-
+  
       const removeItem = items[index];
-      const unitPrice = removeItem.price / removeItem.quantity;
-      let quantityToReduce = 1;
-      let priceToReduce = unitPrice;
-
+      // console.log('removeItem', removeItem);
+      const unitPrice = removeItem.price / removeItem.quantity; 
+  
+    
       if (removeItem.quantity > 1) {
-        removeItem.quantity -= 1;
-        removeItem.price -= unitPrice * removeItem.quantity;
+        removeItem.quantity -= 1; 
       } else {
-        items.splice(index, 1);
+        items.splice(index, 1); 
       }
-
+  
+      // Recalculate the updated subtotal
+      const updatedSubtotal = items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      // console.log('updatedSubtotal', updatedSubtotal);
+  
+      // Recalculate GST, shipping, and total price
+      const GST_RATE = 0.18;
+      const shippingPrice = 40;
+      const gstAmount = updatedSubtotal * GST_RATE;
+      const totalPrice = updatedSubtotal + gstAmount + shippingPrice;
+  
+      // Recalculate the total quantity of all items in the cart
+      const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  
+      // Update the cart with new values
       const updatedCart = await this.prisma.cart.update({
         where: {
           id: cart.id,
         },
         data: {
           items,
-          totalQuantity: cart.totalQuantity - quantityToReduce,
-          totalPrice: cart.totalPrice - priceToReduce,
+          totalQuantity,
+          totalPrice,
+          breakdown: {
+            subtotal: updatedSubtotal,
+            gstAmount,
+            shippingPrice,
+            totalPrice,
+          },
         },
       });
+  
       return {
         message: 'Item removed from cart successfully',
-        cart: updatedCart,
+        cartDetails: updatedCart,
+        breakdown: {
+          subtotal: updatedSubtotal,
+          gstAmount,
+          shippingPrice,
+          totalPrice,
+        },
       };
     } catch (error) {
       throw new HttpException(
@@ -167,7 +247,9 @@ export class CartService {
       );
     }
   }
-
+  
+  
+  
   //Product remove from cart Service
   async removeProductFromCart(userId: any, productId: any) {
     try {
