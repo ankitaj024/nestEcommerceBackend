@@ -8,19 +8,27 @@ import {
   Delete,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { SubCategoryService } from 'src/sub-category/sub-category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  // creating  the category
-
   @Post()
+  @ApiOperation({ summary: 'Create a new category' })
+  @ApiBody({ type: CreateCategoryDto })
+  @ApiResponse({ status: 201, description: 'Category created successfully' })
   async createCategory(@Body() data: CreateCategoryDto) {
-    return this.categoryService.createCategory(data); // pass body directly
+    return this.categoryService.createCategory(data);
   }
 
   // getting all  category
@@ -37,30 +45,43 @@ getcategories(){
     return this.categoryService.getProductsOfALLCategory();
   }
 
-  // getting the subcategories for given category based on name
-
   @Get('/:name')
+  @ApiOperation({
+    summary: 'Get all subcategories for a given category by name',
+  })
+  @ApiParam({ name: 'name', description: 'Category name' })
   getSubcategoriesByCategoryName(@Param('name') name: string) {
     return this.categoryService.getSubcategoriesByCategoryName(name);
   }
 
-  // getting all products associated with subcategory of an category
-
   @Get('/:name/:subname')
-  getProductBySubCategory(@Param('name') name: string , @Param('subname') subname: string) {
-    return this.categoryService. getProductBySubCategory(name ,subname);
+  @ApiOperation({
+    summary:
+      'Get all products associated with a subcategory of a given category',
+  })
+  @ApiParam({ name: 'name', description: 'Category name' })
+  @ApiParam({ name: 'subname', description: 'Subcategory name' })
+  getProductBySubCategory(
+    @Param('name') name: string,
+    @Param('subname') subname: string,
+  ) {
+    return this.categoryService.getProductBySubCategory(name, subname);
   }
 
-  // Update category by ID
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a category by ID' })
+  @ApiParam({ name: 'id', description: 'Category ID' })
+  @ApiBody({ type: UpdateCategoryDto })
   updateCategory(
     @Param('id') id: string,
-    @Body() data: { name?: string; description?: string; image?: string },
+    @Body() data: UpdateCategoryDto,
   ) {
     return this.categoryService.updateCategory(id, data);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a category by ID' })
+  @ApiParam({ name: 'id', description: 'Category ID' })
   deleteCategory(@Param('id') id: string) {
     return this.categoryService.deleteCategory(id);
   }

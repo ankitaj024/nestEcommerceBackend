@@ -17,9 +17,9 @@ async function bootstrap() {
   );
   app.enableCors();
   const config = new DocumentBuilder()
-    .setTitle('My API')
-    .setDescription('API documentation for My App')
-    .setVersion('1.0')
+    .setTitle('Ecommerce API')
+    .setDescription('API documentation for Ecommerce')
+    .setVersion('1.0.1')
     .addBearerAuth( { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'access-token', ) 
     .build();

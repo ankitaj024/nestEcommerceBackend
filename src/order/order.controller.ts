@@ -1,72 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, Req , Header } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { Request, Response } from 'express';
 
+@ApiTags('Orders')
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  //Create Order API
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  create(@Req() request:Request, @Body() createOrderDto: CreateOrderDto) {
-    const userId = ( request as any ).user.id;
-    return this.orderService.create(userId,createOrderDto);
-  }
 
+
+  @ApiBearerAuth("access-token")
+  @ApiOperation({ summary: 'Create a new order using Razorpay' })
+  @ApiResponse({ status: 201, description: 'Razorpay order initiated' })
   @UseGuards(JwtAuthGuard)
   @Post('/razorpay')
-  createUsingRazorpay(@Req() request:Request, @Body() createOrderDto: CreateOrderDto) {
-    const userId = ( request as any ).user.id;
-    return this.orderService.createUsingRazorpay(userId,createOrderDto);
+  createUsingRazorpay(@Req() request: Request, @Body() createOrderDto: CreateOrderDto) {
+    const userId = String(( request as any ).user.id);
+    return this.orderService.createUsingRazorpay(userId, createOrderDto);
   }
 
-  //getOrders API
+  @ApiBearerAuth("access-token")
+  @ApiOperation({ summary: 'Get all orders for the logged-in user' })
+  @ApiResponse({ status: 200, description: 'List of user orders' })
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() request:Request) {
+  findAll(@Req() request: Request) {
     const userId = ( request as any ).user.id;
-    return this.orderService.findOrderOfUser(userId)
+    return this.orderService.findOrderOfUser(userId);
   }
 
-  //webhook for razorpay
+  @ApiOperation({ summary: 'Webhook endpoint for Razorpay payment link' })
+  @ApiResponse({ status: 200, description: 'Razorpay webhook processed' })
   @Post('/razorpay/webhook')
-  orderCreateByRazorpayLink(@Req() req){
-    return this.orderService.orderCreateByPaymentLinkResponse(req)
+  orderCreateByRazorpayLink(@Req() req) {
+    return this.orderService.orderCreateByPaymentLinkResponse(req);
   }
 
-
-  @UseGuards(JwtAuthGuard)
-  @Post('/paypal')
-  createUsingPaypal(@Req() req: Request, @Body() dto: CreateOrderDto) {
-    const userId = (req as any).user.id;
-    return this.orderService.createUsingPaypal(userId, dto);
-  }
-  
-  @Post('/paypal/webhook')
-  @Header('Content-Type', 'application/json')
-  async handlePaypalWebhook(@Req() req: Request, @Res() res: Response) {
-    return this.orderService.handlePaypalWebhook(req, res);
-  }
-  
-
-
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
-  }
 }

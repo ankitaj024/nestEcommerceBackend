@@ -6,9 +6,11 @@ import { CartModule } from 'src/cart/cart.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { PaypalService } from './paypal.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailModule } from 'src/email/email.module';
+import { PromocodeModule } from 'src/promocode/promocode.module';
 
 @Module({
-  imports:[CartModule, AuthModule ],
+  imports:[CartModule, AuthModule , EmailModule , PromocodeModule],
   controllers: [OrderController],
   providers: [OrderService, CartService , PaypalService],
 })

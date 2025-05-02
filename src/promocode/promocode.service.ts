@@ -18,11 +18,17 @@ export class PromoCodeService {
   }
 
   // Validate Promo Code
-  async validateAndApplyPromoCode(userId: string, promoCode: string, orderTotal: number): Promise<{ discount: number }> {
+  async validateAndApplyPromoCode(userId: string, promoCode: string) {
     const promo = await this.prisma.promoCode.findUnique({
       where: { code: promoCode },
     });
 
+
+    const cart = await this.prisma.cart.findFirst({
+      where: {
+        userId,
+      },
+    });
     if (!promo || !promo.isActive) {
       throw new BadRequestException('Promo code is invalid or inactive');
     }
@@ -33,7 +39,7 @@ export class PromoCodeService {
     }
 
     // Check if the order meets the minimum order amount for this promo
-    if (promo.minOrderAmount && orderTotal < promo.minOrderAmount) {
+    if (promo.minOrderAmount && cart.totalPrice < promo.minOrderAmount) {
       throw new BadRequestException(`Minimum order amount is ${promo.minOrderAmount}`);
     }
 
@@ -51,10 +57,13 @@ export class PromoCodeService {
       throw new BadRequestException('You have already used this promo code the maximum number of times');
     }
 
+
+
+
     // Calculate the discount based on the discount type
     let discount = 0;
     if (promo.discountType === 'percentage') {
-      discount = (promo.discountValue / 100) * orderTotal;
+      discount = (promo.discountValue / 100) * cart.totalPrice;
       if (promo.maxDiscountValue && discount > promo.maxDiscountValue) {
         discount = promo.maxDiscountValue;
       }

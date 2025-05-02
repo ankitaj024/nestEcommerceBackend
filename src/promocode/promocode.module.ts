@@ -7,5 +7,6 @@ import { AuthModule } from 'src/auth/auth.module'; // Import the AuthModule here
   imports: [AuthModule], // Add the AuthModule to the imports array
   controllers: [PromoCodeController],
   providers: [PromoCodeService],
+  exports : [PromoCodeService]
 })
 export class PromocodeModule {}

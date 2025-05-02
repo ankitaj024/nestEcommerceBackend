@@ -17,6 +17,9 @@ import { CategoryModule } from './category/category.module';
 import { SubCategoryModule } from './sub-category/sub-category.module';
 import { ProductSubPartsModule } from './product-sub-parts/product-sub-parts.module';
 import { PromocodeModule } from './promocode/promocode.module';
+import { WishlistModule } from './whishlist/whishlist.module';
+import { PdfService } from './utils/pdf/pdf.service';
+import { PdfModule } from './utils/pdf/pdf.module';
 
 
 @Module({
@@ -36,8 +39,10 @@ import { PromocodeModule } from './promocode/promocode.module';
   
    
     
+    WishlistModule,
+    PdfModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, PdfService],
 })
 export class AppModule {}

@@ -12,6 +12,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { CreateProductSpecificationDto } from './dto/create-product-specification.dto';
 import { UpdateProductSpecificationDto } from './dto/update-product-specification.dto';
+import { get } from 'http';
 
 @Controller()
 export class ProductSubPartsController {
@@ -51,7 +52,12 @@ async createReview(
   });
 }
 
+// @Get ('/review')
+// async getReview()
+// {
+//   return this.productSubPartsService.getReview();
 
+// }
 
   @Post('/specification')
   createSpecification(@Body() createProductSpecificationDto: CreateProductSpecificationDto[]) {

@@ -1,34 +1,47 @@
-import { Controller, Post, Body, UseGuards, BadRequestException , Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, BadRequestException, Request } from '@nestjs/common';
 import { PromoCodeService } from './promocode.service';
 import { CreatePromocodeDto } from './dto/create-promocode.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
-import { AuthService } from 'src/auth/auth.service';
-
+@ApiTags('PromoCode')
+@ApiBearerAuth('access-token') // Enable Swagger auth for this controller
 @Controller('promocode')
 export class PromoCodeController {
   constructor(private readonly promocodeService: PromoCodeService) {}
 
-  // Endpoint to create a promo code
   @Post('/create')
   @UseGuards(JwtAuthGuard)
-  async createPromoCode(@Body() createPromoDto: CreatePromocodeDto) {
+  @ApiOperation({ summary: 'Create a new promo code' })
+  @ApiResponse({ status: 201, description: 'Promo code created successfully' })
+  @ApiBody({ type: CreatePromocodeDto })
+  createPromoCode(@Body() createPromoDto: CreatePromocodeDto) {
     return this.promocodeService.createPromoCode(createPromoDto);
   }
 
-  // Endpoint to apply promo code directly
   @Post('/apply')
-  @UseGuards(JwtAuthGuard) // Ensure only authenticated users can apply promo code
-  async applyPromoCode(@Request() req, @Body() body: { promoCode: string; orderTotal: number }) {
-    const userId = req.user.id;  // Access userId from the JWT token
-    const { promoCode, orderTotal } = body;
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Apply a promo code to an order' })
+  @ApiResponse({ status: 200, description: 'Promo code applied successfully' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        promoCode: { type: 'string', example: 'SAVE10' },
+        orderTotal: { type: 'number', example: 1500 },
+      },
+      required: ['promoCode', 'orderTotal'],
+    },
+  })
+  async applyPromoCode(@Request() req, @Body() body: { promoCode: string}) {
+    const userId = req.user.id;
+    const { promoCode } = body;
 
     try {
-      // Validate promo code and get discount
-      const { discount } = await this.promocodeService.validateAndApplyPromoCode(userId, promoCode, orderTotal);
-      return { discount };  // Send the discount back as a response
+      const { discount } = await this.promocodeService.validateAndApplyPromoCode(userId, promoCode);
+      return { discount };
     } catch (e) {
-      throw new BadRequestException(e.message);  // If an error occurs, handle it here
+      throw new BadRequestException(e.message);
     }
   }
 }

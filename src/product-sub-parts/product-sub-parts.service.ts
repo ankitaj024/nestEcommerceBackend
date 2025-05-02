@@ -70,6 +70,8 @@ export class ProductSubPartsService {
   }
 
   async createReview(
+
+    
     input: CreateReviewDto & { userId: string; productId: string },
   ) {
     const { userId, productId, rating, comment, images } = input;
@@ -94,16 +96,43 @@ export class ProductSubPartsService {
         productId,
       },
     });
-
+    enum Rating {
+      ONE = 1,
+      TWO = 2,
+      THREE = 3,
+      FOUR = 4,
+      FIVE = 5,
+    }
     const reviews = await this.prisma.review.findMany({ where: { productId } });
-    const totalRating = reviews.reduce((acc, r) => acc + Number(r.rating), 0);
+    console.log(reviews)
+    const totalRating = reviews.reduce((acc, r) => {
+      
+      let val = Number(r.rating);
+      if(r.rating=="ONE")
+      {
+        val = 1;
+      }
+      else if(r.rating=="TWO"){
+        val = 2;
+      }else if(r.rating=="THREE"){
+        val = 3;
+      }else if(r.rating=="FOUR"){
+        val = 4;
+      }else if(r.rating=="FIVE"){
+        val = 5;
+      }
+
+      return isNaN(val) ? acc : acc + val;
+    }, 0);
+    
+    
     const averageRating = totalRating / reviews.length;
 
     await this.prisma.product.update({
       where: { id: productId },
-      data: { averageRating },
+      data: { averageRating:averageRating },
     });
-
+console.log(Number(averageRating));
     return { message: 'Review added successfully', review };
   }
 
@@ -133,4 +162,14 @@ export class ProductSubPartsService {
       }
     }
   }
+
+// async getReview()
+// {
+// try {
+  
+// } catch (error) {
+  
+// }
+// }
+
 }
