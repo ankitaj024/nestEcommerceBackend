@@ -1,11 +1,10 @@
-import { IsString, IsEnum, IsOptional, IsArray, IsMongoId, IsNotEmpty, MinLength, MaxLength, IsInt  } from 'class-validator';
-// import { Rating } from './create-review.dto';
+import { IsOptional, IsEnum, IsString, IsArray, IsMongoId, MinLength, MaxLength } from 'class-validator';
+import { Rating } from './create-review.dto';
 
 export class UpdateReviewDto {
   @IsOptional()
- @IsInt( { message: 'Rating must be one of the the  1 ,2 , 3 , 4, 5 ' })
-   rating: number;
- 
+  @IsEnum(Rating, { message: 'Rating must be one of the following: ONE, TWO, THREE, FOUR, or FIVE' })
+  rating?: Rating;
 
   @IsOptional()
   @IsString({ message: 'Comment must be a string' })
