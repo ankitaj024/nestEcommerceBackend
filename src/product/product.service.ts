@@ -110,12 +110,17 @@ async getProductByFilters(filters: {
     }
 
     // Discount Filter
-    if (filters.discountMin || filters.discountMax) {
-      query.discountPercentage = {
-        gte: filters.discountMin || undefined,
-        lte: filters.discountMax || undefined,
-      };
-    }
+
+ if (
+  filters.discountMin !== undefined ||
+  filters.discountMax !== undefined
+) {
+  query.discountPercentage = {
+    ...(filters.discountMin !== undefined && { gte: Number(filters.discountMin) }),
+    ...(filters.discountMax !== undefined && { lte: Number(filters.discountMax) }),
+    not: null, // exclude products with null discountPercentage
+  };
+}
 
     // Brand Filter
     if (filters.brand) {

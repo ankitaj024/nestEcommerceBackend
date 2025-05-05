@@ -193,7 +193,7 @@ export class CategoryService {
     }
   }
 
-  // getting daat by subcategory 
+  // getting data by subcategory 
 
 
   async getProductBySubCategory(categoryName: string, subcategoryName: string) {
@@ -233,7 +233,16 @@ export class CategoryService {
           categoryId: category.id,
           subcategoryId: subcategory.id,
         },
-        include: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          price: true,
+          discountPrice: true,
+          discountPercentage: true,
+          stock: true,
+          images: true,
+          averageRating: true, 
           brand: {
             select: {
               name: true,
@@ -243,6 +252,7 @@ export class CategoryService {
           colors: {
             select: {
               name: true,
+              hexCode: true,
             },
           },
           sizes: {
@@ -254,6 +264,7 @@ export class CategoryService {
             select: {
               rating: true,
               comment: true,
+              images: true,
             },
           },
           specifications: {

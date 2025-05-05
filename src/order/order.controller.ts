@@ -10,6 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -33,6 +34,9 @@ export class OrderController {
     return this.orderService.createUsingRazorpay(userId, createOrderDto);
   }
 
+  @ApiBearerAuth("access-token")
+  @ApiOperation({ summary: 'Get all orders for the logged-in user' })
+  @ApiResponse({ status: 200, description: 'List of user orders' })
   @ApiBearerAuth("access-token")
   @ApiOperation({ summary: 'Get all orders for the logged-in user' })
   @ApiResponse({ status: 200, description: 'List of user orders' })

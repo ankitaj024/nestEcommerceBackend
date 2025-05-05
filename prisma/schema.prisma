@@ -2,13 +2,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Rating {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
-}
+// enum Rating {
+//   ONE
+//   TWO
+//   THREE
+//   FOUR
+//   FIVE
+// }
 
 datasource db {
   provider = "mongodb"
@@ -66,16 +66,16 @@ model Product {
   discountPercentage Int?
   stock              Int
 
-  images String[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  images        String[]
+  averageRating Float? @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Foreign Keys
-  categoryId     String                 @db.ObjectId
-  subcategoryId  String                 @db.ObjectId
-  brandId        String                 @db.ObjectId
-  averageRating  Float?
+  categoryId    String @db.ObjectId
+  subcategoryId String @db.ObjectId
+  brandId       String @db.ObjectId
+
   // Relations
   category       Category               @relation("CategoryToProduct", fields: [categoryId], references: [id])
   subcategory    Subcategory            @relation("SubcategoryToProduct", fields: [subcategoryId], references: [id])
@@ -94,9 +94,17 @@ model ProductColor {
   product   Product @relation(fields: [productId], references: [id])
 }
 
+// enum Rating {
+//   ONE
+//   TWO
+//   THREE
+//   FOUR
+//   FIVE
+// }
+
 model Review {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Rating // Rating is now constrained to ONE, TWO, THREE, FOUR, FIVE
+   rating    Int   
   comment   String?
   images    String[]
   userId    String   @db.ObjectId
@@ -136,6 +144,7 @@ model Cart {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   userId        String   @db.ObjectId
   items         Json
+  breakdown     Json?
   totalPrice    Float    @default(0)
   totalQuantity Int      @default(0)
   createdAt     DateTime @default(now())
@@ -145,7 +154,7 @@ model Cart {
 
 model Order {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String @db.ObjectId
+  userId        String   @db.ObjectId
   items         Json
   totalPrice    Float
   promoCode     String?
@@ -163,7 +172,7 @@ model Order {
 model wishlist {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   items     Json
-  userId    String @db.ObjectId
+  userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
@@ -215,7 +224,7 @@ model PromoCode {
 
 model PromoCodeUsage {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String @db.ObjectId
+  userId      String    @db.ObjectId
   promoCodeId String    @db.ObjectId
   usedAt      DateTime  @default(now())
   promoCode   PromoCode @relation(fields: [promoCodeId], references: [id])
