@@ -19,7 +19,7 @@ export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cartService: CartService,
-     private readonly emailService: EmailService,
+    private readonly emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
@@ -91,6 +91,14 @@ export class OrderService {
         },
       });
       // console.log(cart);
+      const deliveryAddress =
+        createOrderDto.address +
+        ' ' +
+        createOrderDto.city +
+        ' ' +
+        createOrderDto.country +
+        ' ' +
+        createOrderDto.postalCode;
       const productIds = cart.items.map((item) => item.productId);
       const products = await this.prisma.product.findMany({
         where: {
@@ -117,13 +125,13 @@ export class OrderService {
         customer: {
           name: user.name,
           email: user.email,
-          contact: '9782140552',
+          contact: '8850276460',
         },
         notify: {
           sms: true,
           email: true,
         },
-        callback_url: 'https://192.168.1.9:3000/users/blog',
+        callback_url: 'http://192.168.1.54:3000/order',
         callback_method: 'get',
       });
 
@@ -133,9 +141,10 @@ export class OrderService {
           items: cart.items,
           totalPrice: cart.totalPrice,
           totalQuantity: cart.totalQuantity,
-          address: createOrderDto.address,
+          address: deliveryAddress,
           status: 'Pending',
           paymentLinkId: link.id,
+          placedOn: new Date(),
         },
       });
 
@@ -161,6 +170,7 @@ export class OrderService {
       const generatedSignature = crypto
         .createHmac('sha256', secret)
         .update(JSON.stringify(req.body))
+
         .digest('hex');
 
       if (signature !== generatedSignature) {
@@ -169,20 +179,19 @@ export class OrderService {
 
       const payload = req.body;
       const paymentId = payload.payload.payment.entity.id;
-      
 
       if (payload.event === 'payment_link.paid') {
         const paymentLinkId = payload.payload.payment_link.entity.id;
 
+        // console.log(paymentLinkId)
         await this.prisma.order.updateMany({
           where: {
             paymentLinkId,
             status: 'Pending',
-            
           },
           data: {
             status: 'Payment Successful',
-            transactionId: paymentId
+            transactionId: paymentId,
           },
         });
 
@@ -224,12 +233,18 @@ export class OrderService {
         );
 
         await this.cartService.deleteCart(order.userId);
-        const userId = order.userId
-       const user =  await this.prisma.user.findFirst({
+        const userId = order.userId;
+        const user = await this.prisma.user.findFirst({
           where: { id: userId },
-        })
-        await this.emailService.sendOrderConfirmationEmail(user.name, user.email, order.id, order.items, order.totalPrice)
-      
+        });
+        await this.emailService.sendOrderConfirmationEmail(
+          user.name,
+          user.email,
+          order.id,
+          order.items,
+          order.totalPrice,
+        );
+
         return {
           status: HttpStatus.CREATED,
           message: 'Order Successful & Stock Updated',

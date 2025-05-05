@@ -9,10 +9,34 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+  
 
   @ApiProperty({
-    description: 'Payment token (e.g., from Stripe)',
-    example: 'tok_visa_123456789',
+    description: 'City for the shipping address',
+    example: 'Springfield',
   })
-  token: string;
+  @IsNotEmpty()
+  @IsString()
+  city: string;
+
+  @ApiProperty({
+    description: 'Country for the shipping address',
+    example: 'Illinois',
+  })
+  @IsNotEmpty()
+  @IsString()
+  country: string;
+
+  @ApiProperty({
+    description: 'PostalCode for the shipping address',
+    example: 'IL',
+  })
+  @IsNotEmpty()
+  postalCode: string;
+
+  // @ApiProperty({
+  //   description: 'Payment token (e.g., from Stripe)',
+  //   example: 'tok_visa_123456789',
+  // })
+  // token: string;
 }

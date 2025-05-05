@@ -196,23 +196,23 @@ export class CartService {
         items.splice(index, 1); 
       }
   
-      // Recalculate the updated subtotal
+     
       const updatedSubtotal = items.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
       // console.log('updatedSubtotal', updatedSubtotal);
   
-      // Recalculate GST, shipping, and total price
+     
       const GST_RATE = 0.18;
       const shippingPrice = 40;
       const gstAmount = updatedSubtotal * GST_RATE;
       const totalPrice = updatedSubtotal + gstAmount + shippingPrice;
   
-      // Recalculate the total quantity of all items in the cart
+      
       const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
   
-      // Update the cart with new values
+     
       const updatedCart = await this.prisma.cart.update({
         where: {
           id: cart.id,
