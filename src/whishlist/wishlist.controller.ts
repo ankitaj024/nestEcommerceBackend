@@ -24,7 +24,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 export class WishlistController {
   constructor(private readonly wishlistService: WishlistService) {}
 
-  @Post()
+  @Post('/create')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Add product to wishlist' })
   @ApiResponse({ status: 201, description: 'Product added to wishlist successfully' })
@@ -34,7 +34,7 @@ export class WishlistController {
     return this.wishlistService.create(userId, createWishlistDto);
   }
 
-  @Get()
+  @Get('get-wishlist')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all wishlist items of the user' })
   @ApiResponse({ status: 200, description: 'Wishlist fetched successfully' })

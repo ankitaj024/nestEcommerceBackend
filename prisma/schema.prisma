@@ -2,14 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Rating {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -94,23 +86,17 @@ model ProductColor {
   product   Product @relation(fields: [productId], references: [id])
 }
 
-// enum Rating {
-//   ONE
-//   TWO
-//   THREE
-//   FOUR
-//   FIVE
-// }
+
 
 model Review {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Rating // Rating is now constrained to ONE, TWO, THREE, FOUR, FIVE
+  rating    Int 
   comment   String?
   images    String[]
   userId    String   @db.ObjectId
   productId String   @db.ObjectId
   createdAt DateTime @default(now())
-  // Relations
+ 
   product   Product  @relation(fields: [productId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 }

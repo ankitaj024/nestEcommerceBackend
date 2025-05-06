@@ -62,4 +62,7 @@ export class UpdateUserDto {
   })
   @IsOptional()
   status: boolean;
+
+  @IsOptional()
+  profilePicture:string
 }

@@ -1,16 +1,16 @@
-import { IsString, IsEnum, IsOptional, IsArray, IsMongoId, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsArray, IsMongoId, IsNotEmpty, MinLength, MaxLength, IsInt } from 'class-validator';
 
-export enum Rating {
-  ONE = 'ONE',
-  TWO = 'TWO',
-  THREE = 'THREE',
-  FOUR = 'FOUR',
-  FIVE = 'FIVE',
-}
+// export enum Rating {
+//   ONE = 'ONE',
+//   TWO = 'TWO',
+//   THREE = 'THREE',
+//   FOUR = 'FOUR',
+//   FIVE = 'FIVE',
+// }
 
 export class CreateReviewDto {
-  @IsEnum(Rating, { message: 'Rating must be one of the following: ONE, TWO, THREE, FOUR, or FIVE' })
-  rating: Rating;
+  @IsInt({ message: 'Rating must be one of the following: ONE, TWO, THREE, FOUR, or FIVE' })
+  rating: number;
 
   @IsOptional()
   @IsString({ message: 'Comment must be a string' })

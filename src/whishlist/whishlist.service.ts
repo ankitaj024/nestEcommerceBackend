@@ -9,12 +9,14 @@ export class WishlistService {
 
   // Create Wishlist API
   async create(userId: string, createWhishlistDto: CreateWhishlistDto) {
+     console.log("this is test");
     try {
       const product = await this.prisma.product.findUnique({
         where: {
           id: createWhishlistDto.productId,
         },
       });
+      console.log("hello")
       if (!product) {
         throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
       }
@@ -24,18 +26,22 @@ export class WishlistService {
           userId: userId,
         },
       });
-
+console.log(product);
       const newItem = {
-        productId: createWhishlistDto.productId,
-        productName: product.title,
-        productPrice: product.price,
+        // productId: createWhishlistDto.productId,
+        // productName: product.title,
+        // productPrice: product.price,
+        data:product
       };
+      console.log("hello")
+
 
       if (wishlistWithUserFind) {
         const items = wishlistWithUserFind.items as any[];
         const index = items.findIndex(
           (item) => item.productId === createWhishlistDto.productId,
         );
+        console.log("Existing items:", items);
         if (index > -1) {
           throw new HttpException('Product already in wishlist', HttpStatus.BAD_REQUEST);
         } else {

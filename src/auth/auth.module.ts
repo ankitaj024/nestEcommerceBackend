@@ -9,7 +9,7 @@ import { JwtAuthGuard } from './guards/jwt.auth.guard';
 @Module({
   imports:[JwtModule.register({
     secret:process.env.JWT_SECRET,
-    signOptions:{expiresIn:'3h'}
+    signOptions:{expiresIn:'24h'}
   })],
   // controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GoogleStrategy, JwtAuthGuard],

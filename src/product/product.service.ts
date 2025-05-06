@@ -79,6 +79,16 @@ async getProductByFilters(filters: {
   try {
     const query: any = {};
 
+// Convert string values to numbers
+if (filters.priceMin !== undefined) filters.priceMin = Number(filters.priceMin);
+if (filters.priceMax !== undefined) filters.priceMax = Number(filters.priceMax);
+if (filters.discountMin !== undefined) filters.discountMin = Number(filters.discountMin);
+if (filters.discountMax !== undefined) filters.discountMax = Number(filters.discountMax);
+if (filters.stockMin !== undefined) filters.stockMin = Number(filters.stockMin);
+if (filters.stockMax !== undefined) filters.stockMax = Number(filters.stockMax);
+
+
+
     // Category Filter
     if (filters.categoryName) {
       const category = await this.prisma.category.findFirst({

@@ -27,8 +27,7 @@ export class WishlistService {
 
       const newItem = {
         productId: createWishlistDto.productId,
-        productName: product.title,
-        productPrice: product.price,
+      
       };
 
       if (wishlistWithUserFind) {
@@ -37,7 +36,10 @@ export class WishlistService {
           (item) => item.productId === createWishlistDto.productId,
         );
         if (index > -1) {
-          throw new HttpException('Product already in wishlist', HttpStatus.BAD_REQUEST);
+          throw new HttpException(
+            'Product already in wishlist',
+            HttpStatus.BAD_REQUEST,
+          );
         } else {
           items.push(newItem);
           const updatedWishlist = await this.prisma.wishlist.update({
@@ -85,10 +87,36 @@ export class WishlistService {
       if (!wishlist) {
         throw new HttpException('Wishlist not found', HttpStatus.NOT_FOUND);
       }
+
+      type WishlistItem = { productId?: string };
+
+      const items = wishlist.items as WishlistItem[];
+
+      const productIds = items
+        .map((item) => item.productId)
+        .filter(
+          (id): id is string => typeof id === 'string' && id.trim().length > 0,
+        );
+
+      const products = await this.prisma.product.findMany({
+        where: {
+          id: {
+            in: productIds,
+          },
+        },
+        include: {
+          brand: true,
+          colors: true,
+          sizes: true,
+          reviews: true,
+          specifications: true,
+        },
+      });
+
       return {
         status: HttpStatus.OK,
         message: 'Wishlist fetched successfully',
-        data: wishlist,
+        data: products,
       };
     } catch (error) {
       throw new HttpException(
@@ -111,7 +139,10 @@ export class WishlistService {
       const items = wishlist.items as any[];
       const index = items.findIndex((item) => item.productId === productId);
       if (index === -1) {
-        throw new HttpException('Product not found in wishlist', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Product not found in wishlist',
+          HttpStatus.NOT_FOUND,
+        );
       }
       items.splice(index, 1);
       const updatedWishlist = await this.prisma.wishlist.update({

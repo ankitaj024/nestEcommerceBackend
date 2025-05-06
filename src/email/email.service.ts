@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Transporter } from 'nodemailer';
 import { EMAIL_TRANSPORTER } from './email.constant';
 import { PdfService } from 'src/utils/pdf/pdf.service';
-
+import * as path from 'path';
 @Injectable()
 export class EmailService {
   constructor(
@@ -22,7 +22,7 @@ export class EmailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: '/home/keymouseit/Desktop/ecommerce-nest/src/email/images/images.png',
+          path: path.join(__dirname, '..', 'email', 'images', 'images.png'),
           cid: 'logo',
         },
       ],
