@@ -39,7 +39,7 @@ export class AuthService {
       return {
         status: HttpStatus.ACCEPTED,
         access_token: access_token,
-        userDetail: user,
+        userDetails: user,
       };
     } catch (error) {
       throw new HttpException(
