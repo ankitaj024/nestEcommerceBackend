@@ -23,11 +23,11 @@ export class CreateReviewDto {
   @IsString({ each: true, message: 'Each image must be a string' })
   images?: string[];
 
-  @IsString({ message: 'User ID must be a string' })
-  @IsNotEmpty({ message: 'User ID is required' })
-  userId: string;
+  // @IsString({ message: 'User ID must be a string' })
+  // @IsNotEmpty({ message: 'User ID is required' })
+  // userId: string;
 
-  @IsString({ message: 'Product ID must be a string' })
-  @IsNotEmpty({ message: 'Product ID is required' })
-  productId: string;
+  // @IsString({ message: 'Product ID must be a string' })
+  // @IsNotEmpty({ message: 'Product ID is required' })
+  // productId: string;
 }
