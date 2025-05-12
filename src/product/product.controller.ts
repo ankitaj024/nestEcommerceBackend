@@ -30,6 +30,15 @@ export class ProductController {
     return this.productService.createProduct(createProductDto);
   }
 
+  @Get('/search')
+  @ApiOperation({ summary: 'Search for products' })
+  @ApiQuery({ name: 'q', required: true, description: 'Search query string' })
+  @ApiResponse({ status: 200, description: 'List of matching products' })
+  async searchProducts(@Query('q') q: string) {
+    return this.productService.searchProducts(q);
+  }
+
+  
   @Get('/filter')
   @ApiOperation({ summary: 'Filter products based on query parameters' })
   @ApiQuery({ name: 'categoryName', required: false, type: String })

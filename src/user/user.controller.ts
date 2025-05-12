@@ -105,14 +105,28 @@ export class UserController {
     return this.userService.changePassword(email, password, confirmPassword);
   }
 
-
+  @Post('/update-password')
+  @ApiOperation({ summary: 'Update user password' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: { type: 'string', example: 'OldPass123' },
+        newPassword: { type: 'string', example: 'NewPass123' },
+        confirmPassword: { type: 'string', example: 'NewPass123' },
+      },
+      required: ['password', 'newPassword', 'confirmPassword'],
+    },
+  })
   @UseGuards(JwtAuthGuard)
-  updatePassword( @Req() request: Request ,@Body()  body: { password : string; confirmPassword:string, newPassword:string }){
-    const userId = String(( request as any ).user.id);
-    const {password , newPassword , confirmPassword} = body
-return this.userService.updatePassword(userId, password,confirmPassword ,newPassword)
+  updatePassword(
+    @Req() request: Request,
+    @Body() body: { password: string; confirmPassword: string; newPassword: string },
+  ) {
+    const userId = String((request as any).user.id);
+    const { password, newPassword, confirmPassword } = body;
+    return this.userService.updatePassword(userId, password, confirmPassword, newPassword);
   }
-  
   // Get All user API
   @UseGuards(JwtAuthGuard)
   @Get()
