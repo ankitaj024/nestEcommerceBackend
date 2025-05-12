@@ -8,6 +8,7 @@ import {
   Matches,
   Max,
   Min,
+  IsObject
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -69,8 +70,8 @@ export class CreateUserDto {
     example: '123 Main St, Springfield',
   })
   @IsOptional()
-  @IsString()
-  address: string;
+  @IsObject()  
+  address?: any;
 
   @ApiPropertyOptional({
     description: 'URL or path to the user profile image',

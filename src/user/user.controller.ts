@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Req,
+  Request,
+  Put
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,6 +26,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
+import { AddressDto } from './dto/address.dto';
 
 @ApiTags('User')
 @ApiBearerAuth('access-token')
@@ -102,6 +105,13 @@ export class UserController {
     return this.userService.changePassword(email, password, confirmPassword);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  updatePassword( @Req() request: Request ,@Body()  body: { password : string; confirmPassword:string, newPassword:string }){
+    const userId = String(( request as any ).user.id);
+    const {password , newPassword , confirmPassword} = body
+return this.userService.updatePassword(userId, password,confirmPassword ,newPassword)
+  }
   
   // Get All user API
   @UseGuards(JwtAuthGuard)
@@ -120,6 +130,40 @@ export class UserController {
   updateUserData(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUser(id, updateUserDto);
   }
+ 
+ 
+  @Patch('update-address')
+@UseGuards(JwtAuthGuard)
+@ApiOperation({ summary: 'Update user address' })
+@ApiResponse({ status: 200, description: 'User address updated successfully.' })
+@ApiBody({
+  description: 'Data for updating user address',
+  type: AddressDto,
+  examples: {
+    example1: {
+      summary: 'Sample Address Update',
+      value: {
+        firstName: "John",
+        lastName: "Doe",
+        phoneNumber: "+919876543210",
+        street: "123 Main Street",
+        city: "New Delhi",
+        zip: "110001",
+        state: "Delhi",
+        country: "India"
+      },
+    },
+  },
+})
+ updateUserAddress(
+  @Body() addressDto: AddressDto,
+  @Request() req,
+) {
+  const userId = req.user.id;
+  return this.userService.updateUserAddress(userId, addressDto);
+}
+
+  
 
   // Delete User API
   @Delete(':id')

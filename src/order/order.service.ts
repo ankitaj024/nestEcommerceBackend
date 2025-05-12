@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable ,BadRequestException , NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CartService } from 'src/cart/cart.service';
@@ -21,16 +27,14 @@ const razorpayInstance = new Razorpay({
 export class OrderService {
   private stripe: Stripe;
   constructor(
-    private readonly promocodeservice:PromoCodeService,
+    private readonly promocodeservice: PromoCodeService,
     private readonly Paypalservice: PaypalService,
     private readonly prisma: PrismaService,
     private readonly cartService: CartService,
-     private readonly emailService: EmailService,
+    private readonly emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   }
-
- 
 
   // create order api using Razorpay
   async createUsingRazorpay(userId: string, createOrderDto: CreateOrderDto) {
@@ -38,88 +42,89 @@ export class OrderService {
       const cart = await this.prisma.cart.findFirst({
         where: { userId },
       });
-  
+
       if (!cart || !cart.items) {
-        throw new HttpException('Cart is empty or not found', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Cart is empty or not found',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-  
+
       let items: { productId: string }[];
       try {
-        items = typeof cart.items === 'string' ? JSON.parse(cart.items) : cart.items;
+        items =
+          typeof cart.items === 'string' ? JSON.parse(cart.items) : cart.items;
       } catch (e) {
-        throw new HttpException('Cart items format is invalid', HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new HttpException(
+          'Cart items format is invalid',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-  
-      const productIds = items.map(item => item.productId);
+
+      const productIds = items.map((item) => item.productId);
       const products = await this.prisma.product.findMany({
         where: { id: { in: productIds } },
       });
-  
+
       if (!products.length) {
         throw new BadRequestException('No valid products found in cart');
       }
-  
+
       const user = await this.prisma.user.findFirst({
         where: { id: userId },
       });
-  
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
-  
-      const { promoCode, address } = createOrderDto;
-      let discount = 0;
-  
-      if (promoCode) {
-        try {
-          const result = await this.promocodeservice.validateAndApplyPromoCode(userId, promoCode);
-          discount = result.discount;
-        } catch (e) {
-          throw new BadRequestException('Promo code is invalid');
-        }
-      }
-  
+// 
+      // const { city, country, postalCode, address } = createOrderDto;
+
+      const address =
+        createOrderDto.address +
+        ' ' +
+        createOrderDto.city +
+        ' ' +
+        createOrderDto.country +
+        ' ' +
+        createOrderDto.postalCode;
+
       const roundedTotalPrice = Math.round(cart.totalPrice);
-      const finalAmount = Math.max(0, roundedTotalPrice - discount);
-  
-      const amountInPaise = Math.round(finalAmount * 100);
-  
-      
-if (!user.phoneNumber || !/^\d{10}$/.test(String(user.phoneNumber))) {
-  throw new BadRequestException('Invalid or missing phone number');
-}
-const formattedPhoneNumber = `+91${user.phoneNumber}`;  
 
-const link = await razorpayInstance.paymentLink.create({
-  amount: amountInPaise,
-  currency: 'INR',
-  accept_partial: false,
-  description: 'Order Payment Link',
-  customer: {
-    name: user.name,
-    email: user.email,
-    contact: formattedPhoneNumber, 
-  },
-  notify: {
-    sms: true,
-    email: true,
-  },
-  callback_url: 'https://yourdomain.com/payment/callback',
-  callback_method: 'get',
-});
+      if (!user.phoneNumber || !/^\d{10}$/.test(String(user.phoneNumber))) {
+        throw new BadRequestException('Invalid or missing phone number');
+      }
+      const formattedPhoneNumber = `+91${user.phoneNumber}`;
 
-  
+      const link = await razorpayInstance.paymentLink.create({
+        amount: roundedTotalPrice,
+        currency: 'INR',
+        accept_partial: false,
+        description: 'Order Payment Link',
+        customer: {
+          name: user.name,
+          email: user.email,
+          contact: formattedPhoneNumber,
+        },
+        notify: {
+          sms: true,
+          email: true,
+        },
+        callback_url: 'https://yourdomain.com/payment/callback',
+        callback_method: 'get',
+      });
+
       const order = await this.prisma.order.create({
         data: {
           userId,
           items: cart.items,
-          totalPrice: finalAmount,
+          totalPrice: roundedTotalPrice,
           totalQuantity: Number(cart.totalQuantity),
           address,
           paymentLinkId: link.id,
         },
       });
-  
+
       return {
         status: HttpStatus.CREATED,
         message: 'Payment link created. Awaiting payment.',
@@ -133,8 +138,6 @@ const link = await razorpayInstance.paymentLink.create({
       );
     }
   }
-  
-  
 
   //Payment using razorpay
   async orderCreateByPaymentLinkResponse(req) {
@@ -152,7 +155,6 @@ const link = await razorpayInstance.paymentLink.create({
 
       const payload = req.body;
       const paymentId = payload.payload.payment.entity.id;
-      
 
       if (payload.event === 'payment_link.paid') {
         const paymentLinkId = payload.payload.payment_link.entity.id;
@@ -161,14 +163,12 @@ const link = await razorpayInstance.paymentLink.create({
           where: {
             paymentLinkId,
             status: 'Pending',
-            
           },
           data: {
             status: 'Payment Successful',
-            transactionId: paymentId
+            transactionId: paymentId,
           },
         });
-
 
         const order = await this.prisma.order.findFirst({
           where: { paymentLinkId },
@@ -182,11 +182,11 @@ const link = await razorpayInstance.paymentLink.create({
           productId: string;
           // any other fields like quantity, etc.
         }
-        
+
         const items = order.items as unknown as OrderItem[];
-        
+
         const productIds = items.map((item) => item.productId);
-                const products = await this.prisma.product.findMany({
+        const products = await this.prisma.product.findMany({
           where: {
             id: {
               in: productIds,
@@ -201,11 +201,13 @@ const link = await razorpayInstance.paymentLink.create({
               quantity: number;
               // any other fields
             }
-            
+
             const items = order.items as unknown as OrderItem[];
-            
-            const cartItem = items.find((item) => item.productId === product.id);
-            
+
+            const cartItem = items.find(
+              (item) => item.productId === product.id,
+            );
+
             const newStock = product.stock - cartItem.quantity;
 
             if (newStock < 0) {
@@ -222,27 +224,26 @@ const link = await razorpayInstance.paymentLink.create({
         );
 
         await this.cartService.deleteCart(order.userId);
-        const userId = order.userId
-       const user =  await this.prisma.user.findFirst({
+        const userId = order.userId;
+        const user = await this.prisma.user.findFirst({
           where: { id: userId },
-        })
+        });
         interface OrderItem {
           productId: string;
           quantity: number;
           // add other fields as needed
         }
-        
+
         const orderItems = order.items as unknown as OrderItem[];
-        
+
         await this.emailService.sendOrderConfirmationEmail(
           user.name,
           user.email,
           order.id,
           orderItems,
-          order.totalPrice
+          order.totalPrice,
         );
-        
-      
+
         return {
           status: HttpStatus.CREATED,
           message: 'Order Successful & Stock Updated',

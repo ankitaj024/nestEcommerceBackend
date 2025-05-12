@@ -16,7 +16,8 @@ model User {
   Otp            Int?
   profilePicture String?
   isAdmin        Boolean?   @default(false)
-  address        String?    @default("")
+  address         Json? @default("[]")
+ 
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   reviews        Review[]
@@ -143,7 +144,7 @@ model Order {
   userId        String   @db.ObjectId
   items         Json
   totalPrice    Float
-  promoCode     String?
+  
   totalQuantity Int
   status        String?  @default("Pending")
   address       String
@@ -201,7 +202,7 @@ model PromoCode {
   isActive             Boolean          @default(true)
   isPublic             Boolean          @default(true)
   appliesToProductIds  String[]
-  appliesToCategoryIds String[]
+  
   customerId           String?
   promoCodeUsages      PromoCodeUsage[]
   createdAt            DateTime         @default(now())

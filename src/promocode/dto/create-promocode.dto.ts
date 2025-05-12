@@ -53,10 +53,7 @@ export class CreatePromocodeDto {
   @IsString({ each: true })
   appliesToProductIds?: string[];
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  appliesToCategoryIds?: string[];
+  
 
   @IsOptional()
   @IsString()

@@ -1,15 +1,9 @@
 import { IsString, IsEnum, IsOptional, IsArray, IsMongoId, IsNotEmpty, MinLength, MaxLength, IsInt } from 'class-validator';
 
-// export enum Rating {
-//   ONE = 'ONE',
-//   TWO = 'TWO',
-//   THREE = 'THREE',
-//   FOUR = 'FOUR',
-//   FIVE = 'FIVE',
-// }
+
 
 export class CreateReviewDto {
-  @IsInt({ message: 'Rating must be one of the following: ONE, TWO, THREE, FOUR, or FIVE' })
+  @IsInt({ message: 'Rating must be one of the following: 1, 2, 3, 4, 5 ' })
   rating: number;
 
   @IsOptional()

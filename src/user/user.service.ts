@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/email/email.service';
+import { AddressDto } from './dto/address.dto';
 
 @Injectable()
 export class UserService {
@@ -19,7 +20,7 @@ export class UserService {
         where: {
           email: createUserDto.email,
         },
-      }); 
+      });
       if (existingUser) {
         throw new HttpException(
           'User already exists with this email',
@@ -31,7 +32,7 @@ export class UserService {
         data: {
           ...createUserDto,
           password: hashedPassword,
-          phoneNumber:8095641523,
+          phoneNumber: 8095641523,
         },
       });
 
@@ -174,23 +175,118 @@ export class UserService {
     }
   }
 
+  // updatePassword in user module
+
+  async updatePassword(
+    userId: string,
+    password: string,
+    confirmPassword: string,
+    newPassword: string,
+  ) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new HttpException(
+          `User with ID ${userId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw new HttpException(
+          'Current password is incorrect',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (confirmPassword != newPassword) {
+        throw new HttpException(
+          'your confirm password in not matched with new password',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw new HttpException(
+        'Failed to update password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   //UPDATE USER SERVICE
   async updateUser(id: string, updateUserData: UpdateUserDto) {
     try {
       const findUser = await this.prisma.user.findUnique({
-        where: {
-          id: id,
-        },
+        where: { id },
       });
 
       if (!findUser) {
-        throw new HttpException('No User found ', HttpStatus.NOT_FOUND);
+        throw new HttpException('No User found', HttpStatus.NOT_FOUND);
       }
+
+      if (updateUserData.address) {
+        const user = await this.prisma.user.findUnique({
+          where: {
+            id: id,
+          },
+          select: {
+            address: true,
+          },
+        });
+
+        let existingAddresses = user?.address
+          ? JSON.parse(user.address as string)
+          : [];
+
+        const newAddress = {
+          firstName: updateUserData.address.firstName,
+          lastName: updateUserData.address.lastName,
+          country: updateUserData.address.country,
+          city: updateUserData.address.city,
+          zipCode: updateUserData.address.zipCode,
+          phoneNumber: updateUserData.address.phoneNumber,
+          streetAddress: updateUserData.address.streetAddress,
+          state: updateUserData.address.state,
+        };
+
+        existingAddresses.push(newAddress);
+
+        await this.prisma.user.update({
+          where: {
+            id: id,
+          },
+          data: {
+            address: existingAddresses,
+          },
+        });
+        return 'address updated';
+      }
+
+      const { address, ...restData } = updateUserData;
+
+      const dataToUpdate: any = {
+        ...restData,
+      };
+
+      if (address) {
+        dataToUpdate.address = address as any;
+      }
+
       const updatedUser = await this.prisma.user.update({
-        where: {
-          id: id,
-        },
-        data: updateUserData,
+        where: { id },
+        data: dataToUpdate,
       });
 
       return {
@@ -201,9 +297,37 @@ export class UserService {
     } catch (error) {
       throw new HttpException(
         error.message,
-        error.status || error.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async updateUserAddress(userId: string, addressDto: AddressDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { address: true },
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    let updatedAddress = user.address ? JSON.parse(user.address as string) : {};
+
+    updatedAddress = { ...updatedAddress, ...addressDto };
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        address: updatedAddress,
+      },
+    });
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Address updated successfully',
+      updatedUser,
+    };
   }
 
   //DELETE USER SERVICE
@@ -244,7 +368,7 @@ export class UserService {
           email: email,
         },
       });
-      if(findUser) {
+      if (findUser) {
         userCreateData = await this.prisma.user.update({
           where: {
             email: email,

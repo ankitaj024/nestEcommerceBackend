@@ -1,6 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, IsJSON } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-
 export class CreateOrderDto {
   @ApiProperty({
     description: 'Shipping address for the order',
@@ -9,29 +8,25 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   address: string;
- 
-
   @ApiProperty({
-    description: 'Promo code for the order (optional)',
-    example: 'PROMO2025',
+    description: 'City for the shipping address',
+    example: 'Springfield',
   })
-  @IsOptional()  // Promo code is optional
+  @IsNotEmpty()
   @IsString()
-  promoCode: string;
-
-  // @ApiProperty({
-  //   description: 'Payment token (e.g., from Stripe)',
-  //   example: 'tok_visa_123456789',
-  // })
-  // @IsString()
-  // @IsNotEmpty()
-  // token: string;
-
-  // @ApiProperty({
-  //   description: 'Items in the cart (e.g., product IDs with quantities)',
-  //   example: '[{"productId": "product_123", "quantity": 2}, {"productId": "product_456", "quantity": 1}]',
-  // })
-  // // @IsArray()
-  // // @IsJSON()  // Ensure it's a valid JSON array
-  // // items: any[]; // You could refine this type with an interface for items if needed
+  city: string;
+  @ApiProperty({
+    description: 'Country for the shipping address',
+    example: 'Illinois',
+  })
+  @IsNotEmpty()
+  @IsString()
+  country: string;
+  @ApiProperty({
+    description: 'PostalCode for the shipping address',
+    example: 'IL',
+  })
+  @IsNotEmpty()
+  @IsString()
+  postalCode: string;
 }
