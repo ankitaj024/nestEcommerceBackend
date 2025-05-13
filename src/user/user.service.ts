@@ -231,64 +231,49 @@ export class UserService {
       const findUser = await this.prisma.user.findUnique({
         where: { id },
       });
-
+  
       if (!findUser) {
         throw new HttpException('No User found', HttpStatus.NOT_FOUND);
       }
-
+  
+      //  Address Handling Block
       if (updateUserData.address) {
         const user = await this.prisma.user.findUnique({
-          where: {
-            id: id,
-          },
-          select: {
-            address: true,
-          },
+          where: { id },
+          select: { address: true },
         });
-
-        let existingAddresses = user?.address
-          ? JSON.parse(user.address as string)
-          : [];
-
-        const newAddress = {
-          firstName: updateUserData.address.firstName,
-          lastName: updateUserData.address.lastName,
-          country: updateUserData.address.country,
-          city: updateUserData.address.city,
-          zipCode: updateUserData.address.zipCode,
-          phoneNumber: updateUserData.address.phoneNumber,
-          streetAddress: updateUserData.address.streetAddress,
-          state: updateUserData.address.state,
-        };
-
-        existingAddresses.push(newAddress);
-
+  
+        let existingAddresses = Array.isArray(user?.address) ? user.address : [];
+  
+        // Support both object and array input
+        const incomingAddress = Array.isArray(updateUserData.address)
+          ? updateUserData.address[0]
+          : updateUserData.address;
+  
+        existingAddresses.push(incomingAddress);
+  
         await this.prisma.user.update({
-          where: {
-            id: id,
-          },
+          where: { id },
           data: {
             address: existingAddresses,
           },
         });
-        return 'address updated';
+  
+        return {
+          status: HttpStatus.OK,
+          message: 'Address updated successfully',
+          address: existingAddresses,
+        };
       }
-
+  
+      // Handle other fields (excluding address)
       const { address, ...restData } = updateUserData;
-
-      const dataToUpdate: any = {
-        ...restData,
-      };
-
-      if (address) {
-        dataToUpdate.address = address as any;
-      }
-
+  
       const updatedUser = await this.prisma.user.update({
         where: { id },
-        data: dataToUpdate,
+        data: { ...restData },
       });
-
+  
       return {
         status: HttpStatus.OK,
         message: 'User Details Updated Successfully',
@@ -301,6 +286,7 @@ export class UserService {
       );
     }
   }
+  
 
  
 
