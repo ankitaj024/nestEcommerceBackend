@@ -302,33 +302,7 @@ export class UserService {
     }
   }
 
-  async updateUserAddress(userId: string, addressDto: AddressDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { address: true },
-    });
-
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    let updatedAddress = user.address ? JSON.parse(user.address as string) : {};
-
-    updatedAddress = { ...updatedAddress, ...addressDto };
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        address: updatedAddress,
-      },
-    });
-
-    return {
-      status: HttpStatus.OK,
-      message: 'Address updated successfully',
-      updatedUser,
-    };
-  }
+ 
 
   //DELETE USER SERVICE
   async deleteUser(id: string) {

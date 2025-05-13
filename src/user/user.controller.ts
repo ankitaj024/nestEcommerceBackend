@@ -146,36 +146,6 @@ export class UserController {
   }
  
  
-  @Patch('update-address')
-@UseGuards(JwtAuthGuard)
-@ApiOperation({ summary: 'Update user address' })
-@ApiResponse({ status: 200, description: 'User address updated successfully.' })
-@ApiBody({
-  description: 'Data for updating user address',
-  type: AddressDto,
-  examples: {
-    example1: {
-      summary: 'Sample Address Update',
-      value: {
-        firstName: "John",
-        lastName: "Doe",
-        phoneNumber: "+919876543210",
-        street: "123 Main Street",
-        city: "New Delhi",
-        zip: "110001",
-        state: "Delhi",
-        country: "India"
-      },
-    },
-  },
-})
- updateUserAddress(
-  @Body() addressDto: AddressDto,
-  @Request() req,
-) {
-  const userId = req.user.id;
-  return this.userService.updateUserAddress(userId, addressDto);
-}
 
   
 
