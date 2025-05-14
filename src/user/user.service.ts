@@ -236,22 +236,55 @@ export class UserService {
         throw new HttpException('No User found', HttpStatus.NOT_FOUND);
       }
   
-      //  Address Handling Block
-      if (updateUserData.address) {
-        const user = await this.prisma.user.findUnique({
-          where: { id },
-          select: { address: true },
-        });
+      let existingAddresses = Array.isArray(findUser.address) ? findUser.address : [];
+      const { address, ...restData } = updateUserData;
   
-        let existingAddresses = Array.isArray(user?.address) ? user.address : [];
+      // Normalize address input: make sure it's always an array
+      const incomingAddresses = address?Array.isArray(address)?address:[address]:[];
   
-        // Support both object and array input
-        const incomingAddress = Array.isArray(updateUserData.address)
-          ? updateUserData.address[0]
-          : updateUserData.address;
+      const toUpdate: any[] = [];
+      const toAdd: any[] = [];
   
-        existingAddresses.push(incomingAddress);
+     
+      for (const addr of incomingAddresses) {
+        if (addr.addId) {
+          toUpdate.push(addr);  
+        } else {
+          toAdd.push({
+            ...addr,
+            addId: Date.now().toString(),  
+          });
+        }
+      }
   
+      // Handle updating existing addresses
+      if (toUpdate.length > 0) {
+        for (const updated of toUpdate) {
+          const index = existingAddresses.findIndex(
+            (addr: any) => addr.addId === updated.addId
+          );
+  
+          if (index !== -1) {
+            
+            if (existingAddresses[index] && typeof existingAddresses[index] === 'object') {
+              existingAddresses[index] = {
+                ...existingAddresses[index],
+                ...updated,
+              };
+            } else {
+              console.error(`Address with addId ${updated.addId} is not a valid object.`);
+            }
+          }
+        }
+      }
+  
+      
+      if (toAdd.length > 0) {
+        existingAddresses = [...existingAddresses, ...toAdd];
+      }
+  
+      
+      if (incomingAddresses.length > 0) {
         await this.prisma.user.update({
           where: { id },
           data: {
@@ -261,14 +294,12 @@ export class UserService {
   
         return {
           status: HttpStatus.OK,
-          message: 'Address updated successfully',
+          message: `${toAdd.length > 0 ? 'New address added' : ''}${toUpdate.length > 0 ? ' Address updated' : ''} successfully.`,
           address: existingAddresses,
         };
       }
   
-      // Handle other fields (excluding address)
-      const { address, ...restData } = updateUserData;
-  
+      // If no address was updated or added, just update the rest of the user fields
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: { ...restData },
@@ -276,19 +307,18 @@ export class UserService {
   
       return {
         status: HttpStatus.OK,
-        message: 'User Details Updated Successfully',
+        message: 'User details updated successfully.',
         updatedUserDetails: updatedUser,
       };
+  
     } catch (error) {
       throw new HttpException(
-        error.message,
+        error.message || 'Something went wrong',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
   
-
- 
 
   //DELETE USER SERVICE
   async deleteUser(id: string) {

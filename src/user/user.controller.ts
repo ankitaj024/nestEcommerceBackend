@@ -8,7 +8,10 @@ import {
   Delete,
   UseGuards,
   Req,
-  Request,
+  // Request,
+  UseInterceptors,
+  BadRequestException,
+  UploadedFiles,
   Put
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -17,6 +20,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateAuthDto } from './dto/create-auth-dto';
 import { AuthGuard } from '@nestjs/passport';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -46,6 +53,53 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
+  // uploads file API
+  @Post('/upload')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'files', maxCount: 10 }], {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueName = `${Date.now()}-${file.originalname}`;
+          cb(null, uniqueName);
+        },
+      }),
+      limits: {
+        fileSize: 10 * 1024 * 1024, 
+      },
+      fileFilter: (req, file, cb) => {
+        const allowed = /\.(jpg|jpeg|png|pdf|docx|txt)$/i;
+        if (!file.originalname.match(allowed)) {
+          return cb(new BadRequestException('Unsupported file type'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadFiles(
+    @UploadedFiles()
+    files: { files?: Express.Multer.File[] },
+    @Req() req: Request,
+  ) {
+    const uploaded = files.files || [];
+
+    if (!uploaded.length) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    const urls = uploaded.map((file) => {
+      const host = `${req.protocol}://${req.get('host')}`;
+      return {
+        originalName: file.originalname,
+        url: `${host}/uploads/${file.filename}`,
+      };
+    });
+
+    return {
+      message: 'Files uploaded successfully',
+      files: urls,
+    };
+  }
   //Login API
   @Post('/login')
   @ApiOperation({ summary: 'User login' })

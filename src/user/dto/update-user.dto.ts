@@ -37,6 +37,7 @@ export class UpdateUserDto {
   })
   @IsOptional()
   address:{
+    addId:string,
     firstName:string,
     lastName:string,
     phoneNumber:number,
