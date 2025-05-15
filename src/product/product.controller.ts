@@ -33,6 +33,8 @@ export class ProductController {
   @Get('/search')
   @ApiOperation({ summary: 'Search for products' })
   @ApiQuery({ name: 'q', required: true, description: 'Search query string' })
+  @ApiQuery({ name: 'catName', required: false, description: 'Search query string' })
+
   @ApiResponse({ status: 200, description: 'List of matching products' })
   async searchProducts(@Query('q') q: string  ,@Query('catName') catName?: string,) {
     return this.productService.searchProducts(q , catName);

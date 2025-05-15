@@ -67,6 +67,7 @@ export class CreateProductDto {
   images: string[];
 
   // Foreign Keys
+  @IsOptional()
   @IsString({ message: 'Category ID must be a string' })
   @IsNotEmpty({ message: 'Category ID is required' })
   categoryId: string;

@@ -149,11 +149,13 @@ export class CategoryService {
                   createdAt: true
                 }
               },
+              productColorId:true,
               productColor: {           
                 select: {
                   name: true,
                 }
               },
+              productSizeId:true,
               productSize: {                
                 select: {
                   name: true,
@@ -235,46 +237,23 @@ export class CategoryService {
           categoryId: category.id,
           subcategoryId: subcategory.id,
         },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          price: true,
-          discountPrice: true,
-          discountPercentage: true,
-          stock: true,
-          images: true,
-          averageRating: true, 
-          brand: {
-            select: {
-              name: true,
-              logo: true,
-            },
-          },
+        include: {
+          brand: true,
           productColor: {
             select: {
+              id: true,
               name: true,
               hexCode: true,
             },
           },
           productSize: {
             select: {
+              id: true,
               name: true,
             },
           },
-          reviews: {
-            select: {
-              rating: true,
-              comment: true,
-              images: true,
-            },
-          },
-          specifications: {
-            select: {
-              name: true,
-              value: true,
-            },
-          },
+          reviews: true,
+          specifications: true,
         },
       });
   

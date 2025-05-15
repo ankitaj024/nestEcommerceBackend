@@ -28,7 +28,7 @@ export class CartService {
       const GST_RATE = Number(process.env.GST_RATE);
 
       const quantity = createCartDto.quantity;
-      const unitPrice = product.discountPrice;
+      const unitPrice = product.price;
       const newItemSubtotal = unitPrice * quantity;
 
       const productSizeId = createCartDto.productSizeId;
