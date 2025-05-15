@@ -3,6 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCarouselDto } from './dto/create-carousel.dto';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductService {
@@ -31,8 +32,7 @@ export class ProductService {
     }
   }
 
-  async searchProducts(query: string) {
-   
+  async searchProducts(query: string, catName?: string) {
     if (!query || query.trim().length === 0) {
       throw new HttpException(
         'Search query cannot be empty.',
@@ -41,15 +41,41 @@ export class ProductService {
     }
 
     try {
-      return await this.prisma.product.findMany({
+      const searched = await this.prisma.product.findMany({
         where: {
           title: {
-            contains: query, 
+            contains: query,
             mode: 'insensitive',
           },
         },
-       
       });
+      if (!catName &&(searched.length > 0)) {
+        return searched;
+      } else {
+        console.log(' in category');
+        console.log('catName being searched:', catName);
+
+        const catFound = await this.prisma.category.findMany({
+          where: {
+            name: {
+              equals: catName,
+              mode: 'insensitive',
+            },
+          },
+        });
+        console.log(catFound[0].id);
+
+        const subCategory = await this.prisma.subcategory.findMany({
+          where: {
+            categoryId: catFound[0].id || undefined,
+            name: {
+              contains: query,
+              mode: 'insensitive',
+            },
+          },
+        });
+        return subCategory;
+      }
     } catch (error) {
       throw new HttpException(
         `Failed to search products: ${error.message}`,
@@ -62,8 +88,19 @@ export class ProductService {
       const product = await this.prisma.product.findMany({
         include: {
           brand: true,
-          colors: true,
-          sizes: true,
+          productColor: {
+            select: {
+              id: true,
+              name: true,
+              hexCode: true,
+            },
+          },
+          productSize: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           reviews: true,
           specifications: true,
         },
@@ -246,7 +283,7 @@ export class ProductService {
               logo: true,
             },
           },
-          colors: {
+          productColor: {
             where: filters.color
               ? {
                   name: {
@@ -259,7 +296,7 @@ export class ProductService {
               name: true,
             },
           },
-          sizes: {
+          productSize: {
             where: filters.size
               ? {
                   name: {

@@ -68,6 +68,7 @@ export class CategoryService {
             name: true,
             description: true,
             image: true,
+            id:true
           },
         },
       },
@@ -90,6 +91,7 @@ export class CategoryService {
             name: true,
             description: true,
             image: true,
+            id:true
           },
         
       });
@@ -147,12 +149,12 @@ export class CategoryService {
                   createdAt: true
                 }
               },
-              colors: {           
+              productColor: {           
                 select: {
                   name: true,
                 }
               },
-              sizes: {                
+              productSize: {                
                 select: {
                   name: true,
                 }
@@ -249,13 +251,13 @@ export class CategoryService {
               logo: true,
             },
           },
-          colors: {
+          productColor: {
             select: {
               name: true,
               hexCode: true,
             },
           },
-          sizes: {
+          productSize: {
             select: {
               name: true,
             },

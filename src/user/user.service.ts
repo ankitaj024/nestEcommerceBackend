@@ -231,7 +231,10 @@ export class UserService {
       const findUser = await this.prisma.user.findUnique({
         where: { id },
       });
-  
+      if (!id) {
+        throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
+      }
+      
       if (!findUser) {
         throw new HttpException('No User found', HttpStatus.NOT_FOUND);
       }
@@ -251,8 +254,8 @@ export class UserService {
           toUpdate.push(addr);  
         } else {
           toAdd.push({
-            ...addr,
             addId: Date.now().toString(),  
+            ...addr,
           });
         }
       }

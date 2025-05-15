@@ -14,7 +14,5 @@ export class UpdateProductColorDto {
   })
   hexCode?: string;
 
-  @IsOptional()
-  @IsString({ message: 'Product ID must be a string' })
-  productId?: string;
+ 
 }

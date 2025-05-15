@@ -7,7 +7,5 @@ export class CreateProductSizeDto {
   @IsNotEmpty({ message: 'Size name is required' })
   name: string;
 
-  @IsString({ message: 'Product ID must be a string' })
-  @IsNotEmpty({ message: 'Product ID is required' })
-  productId: string;
+
 }

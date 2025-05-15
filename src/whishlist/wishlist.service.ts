@@ -106,8 +106,8 @@ export class WishlistService {
         },
         include: {
           brand: true,
-          colors: true,
-          sizes: true,
+          productColor: true,
+          productSize: true,
           reviews: true,
           specifications: true,
         },

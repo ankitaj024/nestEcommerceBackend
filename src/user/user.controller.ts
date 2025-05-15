@@ -12,7 +12,7 @@ import {
   UseInterceptors,
   BadRequestException,
   UploadedFiles,
-  Put
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -65,7 +65,7 @@ export class UserController {
         },
       }),
       limits: {
-        fileSize: 10 * 1024 * 1024, 
+        fileSize: 10 * 1024 * 1024,
       },
       fileFilter: (req, file, cb) => {
         const allowed = /\.(jpg|jpeg|png|pdf|docx|txt)$/i;
@@ -89,10 +89,7 @@ export class UserController {
 
     const urls = uploaded.map((file) => {
       const host = `${req.protocol}://${req.get('host')}`;
-      return {
-        originalName: file.originalname,
-        url: `${host}/uploads/${file.filename}`,
-      };
+      return `${host}/uploads/${file.filename}`;
     });
 
     return {
@@ -154,7 +151,9 @@ export class UserController {
       },
     },
   })
-  changePassword(@Body() body: { email: string; password: string; confirmPassword: string }) {
+  changePassword(
+    @Body() body: { email: string; password: string; confirmPassword: string },
+  ) {
     const { email, password, confirmPassword } = body;
     return this.userService.changePassword(email, password, confirmPassword);
   }
@@ -175,11 +174,17 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   updatePassword(
     @Req() request: Request,
-    @Body() body: { password: string; confirmPassword: string; newPassword: string },
+    @Body()
+    body: { password: string; confirmPassword: string; newPassword: string },
   ) {
     const userId = String((request as any).user.id);
     const { password, newPassword, confirmPassword } = body;
-    return this.userService.updatePassword(userId, password, confirmPassword, newPassword);
+    return this.userService.updatePassword(
+      userId,
+      password,
+      confirmPassword,
+      newPassword,
+    );
   }
   // Get All user API
   @UseGuards(JwtAuthGuard)
@@ -195,13 +200,12 @@ export class UserController {
   @ApiOperation({ summary: 'Update user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: UpdateUserDto })
-  updateUserData(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  updateUserData(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return this.userService.updateUser(id, updateUserDto);
   }
- 
- 
-
-  
 
   // Delete User API
   @Delete(':id')

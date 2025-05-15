@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateCartDto {
   @ApiProperty({
     description: 'ID of the product to add to the cart',
-    example: '66087289d53acdb9de601c99',
+    example: '6809e1fbfbdb907607c61e51',
   })
   @IsString()
   @IsNotEmpty()
@@ -17,4 +17,22 @@ export class CreateCartDto {
   @IsInt()
   @IsNotEmpty()
   quantity: number;
+
+
+  @ApiProperty({
+    description: 'ID of the color',
+    example: '68245ff089afddbcb991f34b',
+  })
+  @IsString()
+  @IsNotEmpty()
+  productColorId: string;
+
+
+  @ApiProperty({
+    description: 'ID of the size',
+    example: '6824621489afddbcb991f352',
+  })
+  @IsString()
+  @IsNotEmpty()
+  productSizeId: string;
 }
