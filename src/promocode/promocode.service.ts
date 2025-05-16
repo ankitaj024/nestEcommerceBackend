@@ -101,15 +101,15 @@ export class PromoCodeService {
     const newTotalPrice = Math.max(cartTotal - discount, 0); // Never allow negative total
     console.log(`Discount applied: ${discount}, New total: ${newTotalPrice}`);
 
-    const updatedCart = await this.prisma.cart.update({
+    const newUpdatedCart = await this.prisma.cart.update({
       where: { id: cart.id },
       data: { totalPrice: newTotalPrice },
     });
-    const { productColorId, productSizeId, ...filteredCart } = updatedCart;
+    const { productColorId, productSizeId, ...updatedCart } = newUpdatedCart;
     return {
     promoCode,
       discount,
-      filteredCart,
+      updatedCart,
     };
   } catch (error) {
     console.error('Error applying promo code:', error);

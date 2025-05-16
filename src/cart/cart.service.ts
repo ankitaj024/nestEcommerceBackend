@@ -141,12 +141,12 @@ export class CartService {
       if (!cart) {
         return { message: 'Cart is empty' };
       }
-      const { productColorId, productSizeId, ...filteredCart } = cart;
-    console.log(filteredCart);
+      const { productColorId, productSizeId, ...cartDetails } = cart;
+    console.log(cartDetails);
       return {
         status: HttpStatus.OK,
         message: 'Cart Fetched Successfully',
-        filteredCart,
+        cartDetails,
 
         breakdown: cart.breakdown,
       };
