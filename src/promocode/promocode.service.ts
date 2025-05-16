@@ -105,11 +105,11 @@ export class PromoCodeService {
       where: { id: cart.id },
       data: { totalPrice: newTotalPrice },
     });
-
+    const { productColorId, productSizeId, ...filteredCart } = updatedCart;
     return {
     promoCode,
       discount,
-      updatedCart,
+      filteredCart,
     };
   } catch (error) {
     console.error('Error applying promo code:', error);

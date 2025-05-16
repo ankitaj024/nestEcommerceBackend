@@ -49,10 +49,13 @@ export class CartService {
         productColor: color.name,
         productSize: size.name,
         quantity,
+        productSizeId,
+        productColorId,
         price: product.price,
         productName: product.title,
         productImage: product.images,
       };
+      console.log(newItem);
 
       let cart = await this.prisma.cart.findFirst({ where: { userId } });
 
@@ -138,13 +141,16 @@ export class CartService {
       if (!cart) {
         return { message: 'Cart is empty' };
       }
-
+      const { productColorId, productSizeId, ...filteredCart } = cart;
+    console.log(filteredCart);
       return {
         status: HttpStatus.OK,
         message: 'Cart Fetched Successfully',
-        cartDetails: cart,
+        filteredCart,
+
         breakdown: cart.breakdown,
       };
+      // console.log(cart);
     } catch (error) {
       throw new HttpException(
         error.message,
