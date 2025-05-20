@@ -13,6 +13,7 @@ import {
   BadRequestException,
   UploadedFiles,
   Put,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -227,7 +228,25 @@ export class UserController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google OAuth Callback' })
-  googleAuthRedirect(@Req() req) {
-    return this.userService.googleLoginAndCreateUser(req);
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    const response = await this.userService.googleLoginAndCreateUser(req);
+
+    const access_token = response.access_token;
+    console.log(access_token);
+    return res.redirect(`http://192.168.1.61:3000/${access_token}`);
   }
+
+  // // for facebook handling authentication
+  // @Get('facebook')
+  // @UseGuards(AuthGuard('facebook'))
+  // async facebookLogin() {
+  //   // Facebook redirects the user here
+  // }
+
+  // @Get('facebook/redirect')
+  // @UseGuards(AuthGuard('facebook'))
+  // async facebookRedirect(@Req() req) {
+  //   // Facebook sends back the user info here
+  //   return req.user; // You can generate a JWT or handle login here
+  // }
 }

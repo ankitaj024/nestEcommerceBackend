@@ -125,7 +125,7 @@ export class CartService {
         status: HttpStatus.CREATED,
         message: 'Added to cart successfully',
         cartDetails: cart,
-        breakdown,
+      
       };
     } catch (error) {
       throw new HttpException(
@@ -150,7 +150,7 @@ export class CartService {
 
         breakdown: cart.breakdown,
       };
-      // console.log(cart);
+      console.log(cart);
     } catch (error) {
       throw new HttpException(
         error.message,

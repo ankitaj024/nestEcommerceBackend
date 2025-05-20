@@ -54,7 +54,7 @@ export class PromoCodeService {
 
     const cartTotal =(cart as any)?.breakdown?.totalPrice;
         console.log(cartTotal)
-
+ 
     if (typeof cartTotal !== 'number') {
       throw new BadRequestException('Cart total price is not available');
     }
@@ -106,6 +106,7 @@ export class PromoCodeService {
       data: { totalPrice: newTotalPrice },
     });
     const { productColorId, productSizeId, ...updatedCart } = newUpdatedCart;
+    console.log(newUpdatedCart);
     return {
     promoCode,
       discount,

@@ -4,7 +4,16 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCarouselDto } from './dto/create-carousel.dto';
 import { Category } from 'src/category/entities/category.entity';
+import { Transform } from 'class-transformer';
+import { Parser } from 'json2csv';
+import { Response } from 'express';
+import { resolve } from 'path';
+import { rejects } from 'assert';
+import * as fs from 'fs';
+import * as path from'path'
 
+import{parse} from 'path'
+import * as csvParser from 'csv-parser';
 @Injectable()
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
@@ -49,7 +58,7 @@ export class ProductService {
           },
         },
       });
-      if (!catName &&(searched.length > 0)) {
+      if (!catName && searched.length > 0) {
         return searched;
       } else {
         console.log(' in category');
@@ -349,6 +358,137 @@ export class ProductService {
       );
     }
   }
+
+  async exportProductsToCSV(res: Response): Promise<void> {
+    try {
+      const products = await this.getProductWithDetails();
+      console.log(products);
+      if (!products || products.length === 0) {
+        throw new HttpException(
+          'No products found to export.',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const processedProducts = products.map((product) => ({
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        discountPrice: product.discountPrice,
+        discountPercentage: product.discountPercentage,
+        stock: product.stock,
+        images: Array.isArray(product.images) ? product.images.join(', ') : '',
+        categoryId: product.categoryId,
+        subcategoryId: product.subcategoryId,
+        brandId: product.brandId,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        averageRating: product.averageRating,
+        productColorId: Array.isArray(product.productColorId)
+          ? product.productColorId.join(', ')
+          : '',
+        productSizeId: Array.isArray(product.productSizeId)
+          ? product.productSizeId.join(', ')
+          : '',
+      }));
+
+      const fields = [
+        'title',
+        'description',
+        'price',
+        'discountPrice',
+        'discountPercentage',
+        'stock',
+        'images',
+        'categoryId',
+        'subcategoryId',
+        'brandId',
+        'createdAt',
+        'updatedAt',
+        'averageRating',
+        'productColorId',
+        'productSizeId',
+      ];
+
+      const parser = new Parser({ fields });
+
+      const csv = parser.parse(processedProducts);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="products.csv"',
+      );
+
+      console.log(csv);
+      res.status(200).send(csv);
+    } catch (error) {
+      console.error('Error exporting products to CSV:', error.message || error);
+      throw new HttpException(
+        'Failed to export products. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+// creating carousel using the csv 
+
+async uploadCSVFile(file: Express.Multer.File) {
+  const results = [];
+
+  try {
+
+
+
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+    const filePath = path.join(__dirname, '..', '..', 'uploads', file.originalname);
+
+    
+    fs.writeFileSync(filePath, file.buffer);
+    return new Promise((resolve, reject) => {
+      console.log("thisis the generated fil,epoath here ",filePath)
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (data) => {
+          
+          results.push({
+            brand: data.brand,
+            description: data.description,
+            image: data.image,
+            logoURL:data.logoURL,
+           offer:data.offer,
+          });
+        })
+        .on('end', async () => {
+          
+          const created = await this.prisma.carousel.createMany({
+            data: results,
+          
+          });
+
+          resolve({
+            message: `${created.count} carousel uploaded successfully.`,
+          });
+        })
+        .on('error', (error) => {
+          reject(
+            new HttpException(
+              'Error parsing CSV file: ' + error.message,
+              HttpStatus.BAD_REQUEST,
+            ),
+          );
+        });
+    });
+  } catch (err) {
+    throw new HttpException(
+      'Failed to upload CSV: ' + err.message,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
 
   async createCarousel(createCarouselDto: CreateCarouselDto) {
     try {

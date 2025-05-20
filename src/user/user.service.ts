@@ -5,12 +5,14 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/email/email.service';
 import { AddressDto } from './dto/address.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly jwtService: JwtService,
   ) {}
   //CREATE USER SERVICE
   async createUser(createUserDto: CreateUserDto) {
@@ -234,59 +236,66 @@ export class UserService {
       if (!id) {
         throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
       }
-      
+
       if (!findUser) {
         throw new HttpException('No User found', HttpStatus.NOT_FOUND);
       }
-  
-      let existingAddresses = Array.isArray(findUser.address) ? findUser.address : [];
+
+      let existingAddresses = Array.isArray(findUser.address)
+        ? findUser.address
+        : [];
       const { address, ...restData } = updateUserData;
-  
+
       // Normalize address input: make sure it's always an array
-      const incomingAddresses = address?Array.isArray(address)?address:[address]:[];
-  
+      const incomingAddresses = address
+        ? Array.isArray(address)
+          ? address
+          : [address]
+        : [];
+
       const toUpdate: any[] = [];
       const toAdd: any[] = [];
-  
-     
+
       for (const addr of incomingAddresses) {
         if (addr.addId) {
-          toUpdate.push(addr);  
+          toUpdate.push(addr);
         } else {
           toAdd.push({
-            addId: Date.now().toString(),  
+            addId: Date.now().toString(),
             ...addr,
           });
         }
       }
-  
+
       // Handle updating existing addresses
       if (toUpdate.length > 0) {
         for (const updated of toUpdate) {
           const index = existingAddresses.findIndex(
-            (addr: any) => addr.addId === updated.addId
+            (addr: any) => addr.addId === updated.addId,
           );
-  
+
           if (index !== -1) {
-            
-            if (existingAddresses[index] && typeof existingAddresses[index] === 'object') {
+            if (
+              existingAddresses[index] &&
+              typeof existingAddresses[index] === 'object'
+            ) {
               existingAddresses[index] = {
                 ...existingAddresses[index],
                 ...updated,
               };
             } else {
-              console.error(`Address with addId ${updated.addId} is not a valid object.`);
+              console.error(
+                `Address with addId ${updated.addId} is not a valid object.`,
+              );
             }
           }
         }
       }
-  
-      
+
       if (toAdd.length > 0) {
         existingAddresses = [...existingAddresses, ...toAdd];
       }
-  
-      
+
       if (incomingAddresses.length > 0) {
         await this.prisma.user.update({
           where: { id },
@@ -294,26 +303,25 @@ export class UserService {
             address: existingAddresses,
           },
         });
-  
+
         return {
           status: HttpStatus.OK,
           message: `${toAdd.length > 0 ? 'New address added' : ''}${toUpdate.length > 0 ? ' Address updated' : ''} successfully.`,
           address: existingAddresses,
         };
       }
-  
+
       // If no address was updated or added, just update the rest of the user fields
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: { ...restData },
       });
-  
+
       return {
         status: HttpStatus.OK,
         message: 'User details updated successfully.',
         updatedUserDetails: updatedUser,
       };
-  
     } catch (error) {
       throw new HttpException(
         error.message || 'Something went wrong',
@@ -321,7 +329,6 @@ export class UserService {
       );
     }
   }
-  
 
   //DELETE USER SERVICE
   async deleteUser(id: string) {
@@ -382,11 +389,16 @@ export class UserService {
           },
         });
       }
+      const access_token = this.jwtService.sign({
+        id: userCreateData.id,
+        name: userCreateData.name,
+        email: userCreateData.email,
+      });
 
       return {
         status: HttpStatus.CREATED,
         message: 'login successfull',
-        access_token: accessToken,
+        access_token: access_token,
         userData: userCreateData,
         userId: userCreateData.id,
       };

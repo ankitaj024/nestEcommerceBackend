@@ -4,6 +4,9 @@ import {
   Post,
   Body,
   Query,
+  Res,
+  UseInterceptors,
+  UploadedFile
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -16,7 +19,8 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCarouselDto } from './dto/create-carousel.dto';
-
+import { Response } from 'express';  
+import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('products')
 @Controller('product')
 export class ProductController {
@@ -40,7 +44,22 @@ export class ProductController {
     return this.productService.searchProducts(q , catName);
   }
 
+
+
+  // New method to trigger CSV export
+  @Get('export')
+  async exportProducts(@Res() res: Response) {
+    await this.productService.exportProductsToCSV(res);
+  }
   
+
+  // for uploading the dat from the csv 
+  @Post('upload-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadCSV(@UploadedFile() file: Express.Multer.File) {
+    return this.productService.uploadCSVFile(file);
+  }
+
   @Get('/filter')
   @ApiOperation({ summary: 'Filter products based on query parameters' })
   @ApiQuery({ name: 'categoryName', required: false, type: String })

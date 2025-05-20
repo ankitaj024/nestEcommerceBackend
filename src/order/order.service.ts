@@ -77,7 +77,7 @@ export class OrderService {
       if (!user) {
         throw new NotFoundException('User not found');
       }
-// 
+      //
       // const { city, country, postalCode, address } = createOrderDto;
 
       const address =
@@ -88,9 +88,10 @@ export class OrderService {
         createOrderDto.country +
         ' ' +
         createOrderDto.postalCode;
-
-      const roundedTotalPrice = Math.round(cart.totalPrice);
-
+console.log(cart.totalPrice)
+const roundedTotalPrice = Number(cart.totalPrice.toFixed(2))*100;
+      // const roundedTotalPrice = Math.round(cart.totalPrice);
+console.log(roundedTotalPrice)
       if (!user.phoneNumber || !/^\d{10}$/.test(String(user.phoneNumber))) {
         throw new BadRequestException('Invalid or missing phone number');
       }
@@ -110,7 +111,7 @@ export class OrderService {
           sms: true,
           email: true,
         },
-        callback_url: 'https://yourdomain.com/payment/callback',
+        callback_url: 'http://192.168.1.61:3001/order',
         callback_method: 'get',
       });
 
@@ -118,7 +119,7 @@ export class OrderService {
         data: {
           userId,
           items: cart.items,
-          totalPrice: roundedTotalPrice,
+          totalPrice: roundedTotalPrice/100,
           totalQuantity: Number(cart.totalQuantity),
           address,
           paymentLinkId: link.id,
