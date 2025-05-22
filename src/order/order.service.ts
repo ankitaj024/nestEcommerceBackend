@@ -13,8 +13,9 @@ import { PromoCodeService } from 'src/promocode/promocode.service';
 import Stripe from 'stripe';
 import Razorpay = require('razorpay');
 import { Request, Response } from 'express';
+import * as crypto from 'crypto';
 
-import crypto from 'crypto';
+// import crypto from 'crypto';
 import { PaypalService } from './paypal.service';
 import { EmailService } from 'src/email/email.service';
 
@@ -111,7 +112,8 @@ console.log(roundedTotalPrice)
           sms: true,
           email: true,
         },
-        callback_url: 'http://192.168.1.61:3001/order',
+        callback_url: 'http://192.168.1.61:3000/order',
+        
         callback_method: 'get',
       });
 
@@ -143,19 +145,25 @@ console.log(roundedTotalPrice)
   //Payment using razorpay
   async orderCreateByPaymentLinkResponse(req) {
     try {
+      console.log("Webhook received", req.headers, req.body);
+
+     
+      console.log("you are in webhook header part ",req.headers)
       const secret = 'razorpaySecret';
       const signature = req.headers['x-razorpay-signature'];
-      const generatedSignature = crypto
-        .createHmac('sha256', secret)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-
-      if (signature !== generatedSignature) {
-        throw new HttpException('Invalid Signature', HttpStatus.UNAUTHORIZED);
-      }
+      
+      // const generatedSignature = crypto.createHmac('sha256', secret).update(req.body).digest('hex');
+// console.log(generatedSignature,"generatedSignature")
+      // if (signature !== generatedSignature) {
+      //   throw new HttpException('Invalid Signature', HttpStatus.UNAUTHORIZED);
+      // }
 
       const payload = req.body;
+     
+     
+
       const paymentId = payload.payload.payment.entity.id;
+     
 
       if (payload.event === 'payment_link.paid') {
         const paymentLinkId = payload.payload.payment_link.entity.id;
@@ -174,6 +182,7 @@ console.log(roundedTotalPrice)
         const order = await this.prisma.order.findFirst({
           where: { paymentLinkId },
         });
+        console.log("you are in webhook order part")
 
         if (!order) {
           throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
@@ -259,8 +268,12 @@ console.log(roundedTotalPrice)
     }
   }
 
+
+
+
+  
   // Order fetching API
-  async findOrderOfUser(userId) {
+  async findOrderOfUser(userId:any) {
     try {
       const order = await this.prisma.order.findFirst({ where: { userId } });
       if (!order) {

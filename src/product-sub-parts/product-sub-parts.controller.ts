@@ -1,5 +1,20 @@
-import { Controller, Post, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ProductSubPartsService } from './product-sub-parts.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { CreateProductColorDto } from './dto/create-product-color.dto';
@@ -11,12 +26,12 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 
 @ApiTags('Product Sub Parts') // Tagging all product sub-part related endpoints
 @Controller()
-@ApiBearerAuth("access-token")
-
+@ApiBearerAuth('access-token')
 export class ProductSubPartsController {
-  constructor(private readonly productSubPartsService: ProductSubPartsService) {}
+  constructor(
+    private readonly productSubPartsService: ProductSubPartsService,
+  ) {}
 
-  
   // Brand creation endpoint
   @Post('/brand')
   @ApiOperation({
@@ -34,6 +49,17 @@ export class ProductSubPartsController {
   createBrand(@Body() createBrandDtos: CreateBrandDto[]) {
     return this.productSubPartsService.createBrand(createBrandDtos);
   }
+  @Get('/brand')
+  @ApiOperation({
+    description: 'Fetches all existing product brands.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of product brands fetched successfully.',
+  })
+  async getAllBrands() {
+    return this.productSubPartsService.getAllBrands();
+  }
 
   // Color creation endpoint
   @Post('/color')
@@ -50,8 +76,23 @@ export class ProductSubPartsController {
     description: 'Colors successfully created',
   })
   createColor(@Body() createProductColorDto: CreateProductColorDto[]) {
-    return this.productSubPartsService.createMultipleColors(createProductColorDto);
+    return this.productSubPartsService.createMultipleColors(
+      createProductColorDto,
+    );
   }
+  @Get('/color')
+@ApiOperation({
+ 
+  description: 'Fetches all existing colors with only id and name.',
+})
+@ApiResponse({
+  status: 200,
+  description: 'List of product colors fetched successfully.',
+  
+})
+async getAllColors() {
+  return this.productSubPartsService.getAllColors(); 
+}
 
   // Size creation endpoint
   @Post('/size')
@@ -68,11 +109,13 @@ export class ProductSubPartsController {
     description: 'Sizes successfully created',
   })
   createSize(@Body() createProductSizeDto: CreateProductSizeDto[]) {
-    return this.productSubPartsService.createMultipleSizes(createProductSizeDto);
+    return this.productSubPartsService.createMultipleSizes(
+      createProductSizeDto,
+    );
   }
 
   // Review creation endpoint
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/review/:productId')
   @ApiOperation({
     summary: 'Create a product review',
@@ -81,13 +124,12 @@ export class ProductSubPartsController {
   @ApiParam({
     name: 'productId',
     description: 'The ID of the product being reviewed',
-    example: '607c72efb8f1a6d68f2f44c1',  // Example product ID in URL
+    example: '607c72efb8f1a6d68f2f44c1', // Example product ID in URL
   })
   @ApiBody({
     type: CreateReviewDto,
     description: 'The review data for the product',
-    examples: {
-    },
+    examples: {},
   })
   @ApiResponse({
     status: 201,
@@ -99,7 +141,7 @@ export class ProductSubPartsController {
   })
   @UseGuards(JwtAuthGuard)
   async createReview(
-    @Param('productId') productId: string,  // Extract productId from the URL
+    @Param('productId') productId: string, // Extract productId from the URL
     @Body() createReviewDto: CreateReviewDto,
     @Req() req: Request,
   ) {
@@ -125,7 +167,11 @@ export class ProductSubPartsController {
     status: 201,
     description: 'Specifications successfully created',
   })
-  createSpecification(@Body() createProductSpecificationDto: CreateProductSpecificationDto[]) {
-    return this.productSubPartsService.createMultipleSpecifications(createProductSpecificationDto);
+  createSpecification(
+    @Body() createProductSpecificationDto: CreateProductSpecificationDto[],
+  ) {
+    return this.productSubPartsService.createMultipleSpecifications(
+      createProductSpecificationDto,
+    );
   }
 }

@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as express from 'express';
 
 
 async function bootstrap() {
@@ -31,6 +32,8 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
+
+  // app.use('/order/razorpay/webhook', express.raw({ type: 'application/json' }));
   await app.listen(process.env.PORT ?? 5000);
   console.log('http://localhost:5000')
 }

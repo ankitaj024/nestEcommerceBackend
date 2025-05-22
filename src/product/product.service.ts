@@ -10,9 +10,10 @@ import { Response } from 'express';
 import { resolve } from 'path';
 import { rejects } from 'assert';
 import * as fs from 'fs';
-import * as path from'path'
+import * as path from 'path';
+import { ObjectId } from 'mongodb';
 
-import{parse} from 'path'
+import { parse } from 'path';
 import * as csvParser from 'csv-parser';
 @Injectable()
 export class ProductService {
@@ -137,228 +138,134 @@ export class ProductService {
   }
 
   // applying filter her on product
-  async getProductByFilters(filters: {
-    categoryName?: string;
-    subcategoryName?: string;
-    priceMin?: number;
-    priceMax?: number;
-    brand?: string;
-    discountMin?: number;
-    discountMax?: number;
-    stockMin?: number;
-    stockMax?: number;
-    color?: string;
-    size?: string;
-    sortByPrice?: 'asc' | 'desc';
-    sortByRating?: 'asc' | 'desc';
+
+  async getFilteredProducts(filters: {
+    brandIds?: string[];
+    colorIds?: string[];
+    priceMin?: string;
+    priceMax?: string;
+    discountMin?: string;
+    discountMax?: string;
+    sortBy?: 'price' | 'discount' | 'rating';
+    sortOrder?: 'asc' | 'desc';
   }) {
     try {
       const query: any = {};
-
-      // Convert string values to numbers
-      if (filters.priceMin !== undefined)
-        filters.priceMin = Number(filters.priceMin);
-      if (filters.priceMax !== undefined)
-        filters.priceMax = Number(filters.priceMax);
-      if (filters.discountMin !== undefined)
-        filters.discountMin = Number(filters.discountMin);
-      if (filters.discountMax !== undefined)
-        filters.discountMax = Number(filters.discountMax);
-      if (filters.stockMin !== undefined)
-        filters.stockMin = Number(filters.stockMin);
-      if (filters.stockMax !== undefined)
-        filters.stockMax = Number(filters.stockMax);
-
-      // Category Filter
-      if (filters.categoryName) {
-        const category = await this.prisma.category.findFirst({
-          where: {
-            name: { equals: filters.categoryName, mode: 'insensitive' },
-          },
-        });
-        if (!category)
-          throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
-        query.categoryId = category.id;
-      }
-
-      // Subcategory Filter
-      if (filters.subcategoryName) {
-        const subcategory = await this.prisma.subcategory.findFirst({
-          where: {
-            name: { equals: filters.subcategoryName, mode: 'insensitive' },
-          },
-        });
-        if (!subcategory)
-          throw new HttpException(
-            'Subcategory not found',
-            HttpStatus.NOT_FOUND,
-          );
-        query.subcategoryId = subcategory.id;
-      }
-
-      // Price Filter
-      if (filters.priceMin || filters.priceMax) {
+  
+      // Price filter
+      if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+        const priceMin = filters.priceMin ? parseFloat(filters.priceMin) : undefined;
+        const priceMax = filters.priceMax ? parseFloat(filters.priceMax) : undefined;
+  
+        if (
+          (priceMin !== undefined && isNaN(priceMin)) ||
+          (priceMax !== undefined && isNaN(priceMax))
+        ) {
+          throw new Error('Invalid price value');
+        }
+  
         query.price = {
-          gte: filters.priceMin || undefined,
-          lte: filters.priceMax || undefined,
+          ...(priceMin !== undefined && { gte: priceMin }),
+          ...(priceMax !== undefined && { lte: priceMax }),
         };
       }
-
-      // Discount Filter
-
-      if (
-        filters.discountMin !== undefined ||
-        filters.discountMax !== undefined
-      ) {
+  
+      // Discount filter
+      if (filters.discountMin !== undefined || filters.discountMax !== undefined) {
+        const discountMin = filters.discountMin ? parseInt(filters.discountMin, 10) : undefined;
+        const discountMax = filters.discountMax ? parseInt(filters.discountMax, 10) : undefined;
+  
+        if (
+          (discountMin !== undefined && (isNaN(discountMin) || discountMin < 0 || discountMin > 100)) ||
+          (discountMax !== undefined && (isNaN(discountMax) || discountMax < 0 || discountMax > 100))
+        ) {
+          throw new Error('Invalid discount value');
+        }
+  
         query.discountPercentage = {
-          ...(filters.discountMin !== undefined && {
-            gte: Number(filters.discountMin),
-          }),
-          ...(filters.discountMax !== undefined && {
-            lte: Number(filters.discountMax),
-          }),
-          not: null, // exclude products with null discountPercentage
+          ...(discountMin !== undefined && { gte: discountMin }),
+          ...(discountMax !== undefined && { lte: discountMax }),
+          not: null,
         };
       }
-
-      // Brand Filter
-      if (filters.brand) {
-        const brand = await this.prisma.brand.findFirst({
-          where: {
-            name: { equals: filters.brand, mode: 'insensitive' },
-          },
-        });
-        if (!brand)
-          throw new HttpException('Brand not found', HttpStatus.NOT_FOUND);
-        query.brandId = brand.id;
-      }
-
-      // Stock Filter
-      if (filters.stockMin || filters.stockMax) {
-        query.stock = {
-          gte: filters.stockMin || undefined,
-          lte: filters.stockMax || undefined,
+  
+      // Brand filter
+      if (filters.brandIds?.length) {
+        query.brandId = {
+          in: Array.isArray(filters.brandIds) ? filters.brandIds : [filters.brandIds],
         };
       }
-
-      // Color Filter
-      if (filters.color) {
-        query.colors = {
-          some: {
-            name: {
-              equals: filters.color,
-              mode: 'insensitive',
-            },
-          },
-        };
+  
+      // Color filter — renamed correctly
+      if (filters.colorIds) {
+        const colorIds = Array.isArray(filters.colorIds)
+          ? filters.colorIds
+          : [filters.colorIds];
+      
+        if (colorIds.length) {
+          query.productColorId = {
+            hasSome: colorIds,
+          };
+        }
+       
       }
-
-      // Size Filter
-      if (filters.size) {
-        query.sizes = {
-          some: {
-            name: {
-              equals: filters.size,
-              mode: 'insensitive',
-            },
-          },
-        };
-      }
-
-      // Sort Options
+      
+  
+      // Sort logic
       const orderBy: any[] = [];
-
-      if (filters.sortByPrice) {
-        orderBy.push({ price: filters.sortByPrice });
+      const sortOrder = filters.sortOrder || 'asc';
+  
+      switch (filters.sortBy) {
+        case 'price':
+          orderBy.push({ price: sortOrder });
+          break;
+        case 'discount':
+          orderBy.push({ discountPercentage: sortOrder });
+          break;
+        case 'rating':
+          orderBy.push({ averageRating: sortOrder });
+          break;
+        default:
+          orderBy.push({ createdAt: 'desc' });
       }
-
-      if (filters.sortByRating) {
-        orderBy.push({
-          reviews: {
-            _avg: {
-              rating: filters.sortByRating,
-            },
-          },
-        });
-      }
-
-      // Fetch products
+  
       const products = await this.prisma.product.findMany({
         where: query,
-        include: {
-          brand: {
-            select: {
-              name: true,
-              logo: true,
-            },
-          },
-          productColor: {
-            where: filters.color
-              ? {
-                  name: {
-                    equals: filters.color,
-                    mode: 'insensitive',
-                  },
-                }
-              : undefined,
-            select: {
-              name: true,
-            },
-          },
-          productSize: {
-            where: filters.size
-              ? {
-                  name: {
-                    equals: filters.size,
-                    mode: 'insensitive',
-                  },
-                }
-              : undefined,
-            select: {
-              name: true,
-            },
-          },
-          reviews: {
-            select: {
-              rating: true,
-              comment: true,
-            },
-          },
-          specifications: {
-            select: {
-              name: true,
-              value: true,
-            },
-          },
-        },
         orderBy,
+        include: {
+          brand: { select: { name: true, logo: true } },
+          productColor: { select: { name: true } },
+          productSize: { select: { name: true } },
+          reviews: { select: { rating: true } },
+          specifications: true,
+        },
       });
-
-      if (!products || products.length === 0) {
-        throw new HttpException(
-          'No products found for the specified filters',
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      return products;
+  
+      return {
+        totalCount: products.length,
+        products,
+      };
     } catch (error) {
-      console.error(
-        'Error fetching products by filters:',
-        error.message || error,
-      );
-
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      throw new HttpException(
-        'Failed to fetch products. Please try again later.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Filter error:', error);
+      throw new HttpException('Could not fetch products', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
+
+
+
+  // handling the colors using
+  // async filterProductsByColors(colorIds: string[]) {
+   
+  //   return this.prisma.product.findMany({
+  //     where: {
+  //       productColorId: {
+  //         hasEvery: colorIds, 
+  //       },
+  //     },
+  //   });
+  // }
+  
   async exportProductsToCSV(res: Response): Promise<void> {
     try {
       const products = await this.getProductWithDetails();
@@ -431,64 +338,62 @@ export class ProductService {
     }
   }
 
-// creating carousel using the csv 
+  // creating carousel using the csv
 
-async uploadCSVFile(file: Express.Multer.File) {
-  const results = [];
+  async uploadCSVFile(file: Express.Multer.File) {
+    const results = [];
 
-  try {
+    try {
+      if (!file) {
+        throw new Error('No file uploaded');
+      }
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        file.originalname,
+      );
 
+      fs.writeFileSync(filePath, file.buffer);
+      return new Promise((resolve, reject) => {
+        console.log('thisis the generated fil,epoath here ', filePath);
+        fs.createReadStream(filePath)
+          .pipe(csvParser())
+          .on('data', (data) => {
+            results.push({
+              brand: data.brand,
+              description: data.description,
+              image: data.image,
+              logoURL: data.logoURL,
+              offer: data.offer,
+            });
+          })
+          .on('end', async () => {
+            const created = await this.prisma.carousel.createMany({
+              data: results,
+            });
 
-
-    if (!file) {
-      throw new Error('No file uploaded');
+            resolve({
+              message: `${created.count} carousel uploaded successfully.`,
+            });
+          })
+          .on('error', (error) => {
+            reject(
+              new HttpException(
+                'Error parsing CSV file: ' + error.message,
+                HttpStatus.BAD_REQUEST,
+              ),
+            );
+          });
+      });
+    } catch (err) {
+      throw new HttpException(
+        'Failed to upload CSV: ' + err.message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-    const filePath = path.join(__dirname, '..', '..', 'uploads', file.originalname);
-
-    
-    fs.writeFileSync(filePath, file.buffer);
-    return new Promise((resolve, reject) => {
-      console.log("thisis the generated fil,epoath here ",filePath)
-      fs.createReadStream(filePath)
-        .pipe(csvParser())
-        .on('data', (data) => {
-          
-          results.push({
-            brand: data.brand,
-            description: data.description,
-            image: data.image,
-            logoURL:data.logoURL,
-           offer:data.offer,
-          });
-        })
-        .on('end', async () => {
-          
-          const created = await this.prisma.carousel.createMany({
-            data: results,
-          
-          });
-
-          resolve({
-            message: `${created.count} carousel uploaded successfully.`,
-          });
-        })
-        .on('error', (error) => {
-          reject(
-            new HttpException(
-              'Error parsing CSV file: ' + error.message,
-              HttpStatus.BAD_REQUEST,
-            ),
-          );
-        });
-    });
-  } catch (err) {
-    throw new HttpException(
-      'Failed to upload CSV: ' + err.message,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
   }
-}
-
 
   async createCarousel(createCarouselDto: CreateCarouselDto) {
     try {

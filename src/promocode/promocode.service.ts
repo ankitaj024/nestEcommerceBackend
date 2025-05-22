@@ -103,7 +103,7 @@ export class PromoCodeService {
 
     const newUpdatedCart = await this.prisma.cart.update({
       where: { id: cart.id },
-      data: { totalPrice: newTotalPrice },
+      data: { totalPrice: newTotalPrice , discount: discount},
     });
     const { productColorId, productSizeId, ...updatedCart } = newUpdatedCart;
     console.log(newUpdatedCart);

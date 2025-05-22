@@ -71,7 +71,7 @@ export class EmailService {
         data: new Date().toLocaleString(),
       };
 
-      const pdfPath = await this.pdfService.generatePdf(order);
+      // const pdfPath = await this.pdfService.generatePdf(order);
 
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -93,7 +93,7 @@ export class EmailService {
           },
           {
             filename: `invoice-${order.id}.pdf`,
-            path: pdfPath,
+            // path: pdfPath,
           },
         ],
       };

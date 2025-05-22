@@ -28,6 +28,17 @@ export class ProductSubPartsService {
     return this.prisma.brand.createMany({ data: createBrandDtos });
   }
 
+ 
+  async getAllBrands(){
+   
+    const brands = await this.prisma.brand.findMany({
+      select: {
+        id:true,
+        name:true,
+      }
+    });
+    return brands;
+  }
   async createMultipleColors(createProductColorDtos: CreateProductColorDto[]) {
     try {
       // Using `createMany` to insert multiple colors at once
@@ -49,6 +60,17 @@ export class ProductSubPartsService {
         );
       }
     }
+  }
+
+  async getAllColors(){
+   
+    const colors = await this.prisma.productColor.findMany({
+      select: {
+        id:true,
+        name:true,
+      }
+    });
+    return colors;
   }
   async createMultipleSizes(createProductSizeDtos: CreateProductSizeDto[]) {
     try {

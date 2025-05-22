@@ -6,7 +6,7 @@ import {
   Query,
   Res,
   UseInterceptors,
-  UploadedFile
+  UploadedFile,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -19,7 +19,7 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCarouselDto } from './dto/create-carousel.dto';
-import { Response } from 'express';  
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('products')
 @Controller('product')
@@ -37,23 +37,26 @@ export class ProductController {
   @Get('/search')
   @ApiOperation({ summary: 'Search for products' })
   @ApiQuery({ name: 'q', required: true, description: 'Search query string' })
-  @ApiQuery({ name: 'catName', required: false, description: 'Search query string' })
-
+  @ApiQuery({
+    name: 'catName',
+    required: false,
+    description: 'Search query string',
+  })
   @ApiResponse({ status: 200, description: 'List of matching products' })
-  async searchProducts(@Query('q') q: string  ,@Query('catName') catName?: string,) {
-    return this.productService.searchProducts(q , catName);
+  async searchProducts(
+    @Query('q') q: string,
+    @Query('catName') catName?: string,
+  ) {
+    return this.productService.searchProducts(q, catName);
   }
-
-
 
   // New method to trigger CSV export
   @Get('export')
   async exportProducts(@Res() res: Response) {
     await this.productService.exportProductsToCSV(res);
   }
-  
 
-  // for uploading the dat from the csv 
+  // for uploading the dat from the csv
   @Post('upload-csv')
   @UseInterceptors(FileInterceptor('file'))
   async uploadCSV(@UploadedFile() file: Express.Multer.File) {
@@ -62,25 +65,40 @@ export class ProductController {
 
   @Get('/filter')
   @ApiOperation({ summary: 'Filter products based on query parameters' })
-  @ApiQuery({ name: 'categoryName', required: false, type: String })
-  @ApiQuery({ name: 'subcategoryName', required: false, type: String })
+  @ApiQuery({
+    name: 'brandIds',
+    required: false,
+    type: [String],
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'colorIds',
+    required: false,
+    isArray: true,
+  })
   @ApiQuery({ name: 'priceMin', required: false, type: Number })
   @ApiQuery({ name: 'priceMax', required: false, type: Number })
-  @ApiQuery({ name: 'brand', required: false, type: String })
   @ApiQuery({ name: 'discountMin', required: false, type: Number })
   @ApiQuery({ name: 'discountMax', required: false, type: Number })
-  @ApiQuery({ name: 'stockMin', required: false, type: Number })
-  @ApiQuery({ name: 'stockMax', required: false, type: Number })
-  @ApiQuery({ name: 'color', required: false, type: String })
-  @ApiQuery({ name: 'size', required: false, type: String })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['price',  'discount'],
+  })
+  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
+ 
+
   @ApiResponse({ status: 200, description: 'Filtered products retrieved' })
-  getProductByFilters(@Query() filters: any) {
-    return this.productService.getProductByFilters(filters);
+  getFilteredProducts(@Query() filters: any) {
+    return this.productService.getFilteredProducts(filters);
   }
 
   @Get('/get-products')
   @ApiOperation({ summary: 'Get all products with details' })
-  @ApiResponse({ status: 200, description: 'All products with details retrieved' })
+  @ApiResponse({
+    status: 200,
+    description: 'All products with details retrieved',
+  })
   findAll() {
     return this.productService.getProductWithDetails();
   }
@@ -95,8 +113,18 @@ export class ProductController {
 
   @Get('/get-carousel')
   @ApiOperation({ summary: 'Get carousel data' })
-  @ApiResponse({ status: 200, description: 'Carousel data retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Carousel data retrieved successfully',
+  })
   getCarousel() {
     return this.productService.getCarousel();
   }
+//   @Get('/color-filter')
+//   getProductsByColorIds(@Query('colorIds') colorIds: string | string[]) {
+//     const ids = Array.isArray(colorIds) ? colorIds : [colorIds];
+//     console.log('Color IDs:', ids); 
+//     return this.productService.filterProductsByColors(ids); 
+  
+// }
 }
