@@ -141,6 +141,8 @@ export class ProductService {
 
   async getFilteredProducts(filters: {
     brandIds?: string[];
+    categoryIds?: string[];
+    subcategoryIds?: string[];
     colorIds?: string[];
     priceMin?: string;
     priceMax?: string;
@@ -195,7 +197,21 @@ export class ProductService {
           in: Array.isArray(filters.brandIds) ? filters.brandIds : [filters.brandIds],
         };
       }
-  
+// category filter
+      if (filters.categoryIds?.length) {
+        query.categoryId = {
+          in: Array.isArray(filters.categoryIds) ? filters.categoryIds : [filters.categoryIds],
+        };
+      }
+
+      // subcategory filter
+
+  if (filters.subcategoryIds?.length) {
+        query.subcategoryId = {
+          in: Array.isArray(filters.subcategoryIds) ? filters.subcategoryIds : [filters.subcategoryIds],
+        };
+      }
+      
       // Color filter — renamed correctly
       if (filters.colorIds) {
         const colorIds = Array.isArray(filters.colorIds)

@@ -72,6 +72,18 @@ export class ProductController {
     isArray: true,
   })
   @ApiQuery({
+    name: 'categoryIds',
+    required: false,
+    type: [String],
+    isArray: true,
+  })
+  @ApiQuery({
+    name: 'subcategoryIds',
+    required: false,
+    type: [String],
+    isArray: true,
+  })
+  @ApiQuery({
     name: 'colorIds',
     required: false,
     isArray: true,
