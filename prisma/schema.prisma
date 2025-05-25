@@ -135,7 +135,7 @@ model Cart {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
   userId         String        @db.ObjectId
   items          Json
-  discount       Int  @default(0)
+  discount       Int           @default(0)
   // productColorId String       @db.ObjectId
   // productColor   ProductColor @relation(fields: [productColorId], references: [id])
   // ProductSizeId  String       @db.ObjectId
