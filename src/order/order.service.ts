@@ -112,7 +112,7 @@ console.log(roundedTotalPrice)
           sms: true,
           email: true,
         },
-        callback_url: 'http://192.168.1.61:3000/order',
+        callback_url: 'http://192.168.1.61:3000/#/order',
         
         callback_method: 'get',
       });
