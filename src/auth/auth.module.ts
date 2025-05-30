@@ -7,7 +7,7 @@ import { GoogleStrategy } from './strategy/google.strategy.';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
  import { PassportModule } from '@nestjs/passport';
  import { AuthController } from './auth.controller';
-import { FacebookStrategy } from './strategy/facebook.strategy';
+// import { FacebookStrategy } from './strategy/facebook.strategy';
 
 
 @Module({
@@ -16,7 +16,7 @@ import { FacebookStrategy } from './strategy/facebook.strategy';
     signOptions:{expiresIn:'24h'}
   }) , PassportModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, JwtAuthGuard  , FacebookStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, JwtAuthGuard  ],
   exports:[AuthService, JwtModule, GoogleStrategy, JwtAuthGuard]
 })
 export class AuthModule {}
