@@ -62,8 +62,8 @@ export class ProductService {
       if (!catName && searched.length > 0) {
         return searched;
       } else {
-        console.log(' in category');
-        console.log('catName being searched:', catName);
+        // console.log(' in category');
+        // console.log('catName being searched:', catName);
 
         const catFound = await this.prisma.category.findMany({
           where: {
@@ -89,6 +89,42 @@ export class ProductService {
     } catch (error) {
       throw new HttpException(
         `Failed to search products: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // searching by making the subcat and cat
+  async searchProductsBySubcatAndCat(query: string) {
+    if (!query || query.trim().length === 0) {
+      throw new HttpException(
+        'Search query cannot be empty.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    try {
+      const searched = await this.prisma.subcategory.findMany({
+        where: {
+          name: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        select: {
+          name: true,
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      return searched;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to search for subcategory and category : ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -153,84 +189,101 @@ export class ProductService {
   }) {
     try {
       const query: any = {};
-  
+
       // Price filter
       if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
-        const priceMin = filters.priceMin ? parseFloat(filters.priceMin) : undefined;
-        const priceMax = filters.priceMax ? parseFloat(filters.priceMax) : undefined;
-  
+        const priceMin = filters.priceMin
+          ? parseFloat(filters.priceMin)
+          : undefined;
+        const priceMax = filters.priceMax
+          ? parseFloat(filters.priceMax)
+          : undefined;
+
         if (
           (priceMin !== undefined && isNaN(priceMin)) ||
           (priceMax !== undefined && isNaN(priceMax))
         ) {
           throw new Error('Invalid price value');
         }
-  
+
         query.price = {
           ...(priceMin !== undefined && { gte: priceMin }),
           ...(priceMax !== undefined && { lte: priceMax }),
         };
       }
-  
+
       // Discount filter
-      if (filters.discountMin !== undefined || filters.discountMax !== undefined) {
-        const discountMin = filters.discountMin ? parseInt(filters.discountMin, 10) : undefined;
-        const discountMax = filters.discountMax ? parseInt(filters.discountMax, 10) : undefined;
-  
+      if (
+        filters.discountMin !== undefined ||
+        filters.discountMax !== undefined
+      ) {
+        const discountMin = filters.discountMin
+          ? parseInt(filters.discountMin, 10)
+          : undefined;
+        const discountMax = filters.discountMax
+          ? parseInt(filters.discountMax, 10)
+          : undefined;
+
         if (
-          (discountMin !== undefined && (isNaN(discountMin) || discountMin < 0 || discountMin > 100)) ||
-          (discountMax !== undefined && (isNaN(discountMax) || discountMax < 0 || discountMax > 100))
+          (discountMin !== undefined &&
+            (isNaN(discountMin) || discountMin < 0 || discountMin > 100)) ||
+          (discountMax !== undefined &&
+            (isNaN(discountMax) || discountMax < 0 || discountMax > 100))
         ) {
           throw new Error('Invalid discount value');
         }
-  
+
         query.discountPercentage = {
           ...(discountMin !== undefined && { gte: discountMin }),
           ...(discountMax !== undefined && { lte: discountMax }),
           not: null,
         };
       }
-  
+
       // Brand filter
       if (filters.brandIds?.length) {
         query.brandId = {
-          in: Array.isArray(filters.brandIds) ? filters.brandIds : [filters.brandIds],
+          in: Array.isArray(filters.brandIds)
+            ? filters.brandIds
+            : [filters.brandIds],
         };
       }
-// category filter
+      // category filter
       if (filters.categoryIds?.length) {
         query.categoryId = {
-          in: Array.isArray(filters.categoryIds) ? filters.categoryIds : [filters.categoryIds],
+          in: Array.isArray(filters.categoryIds)
+            ? filters.categoryIds
+            : [filters.categoryIds],
         };
       }
 
       // subcategory filter
 
-  if (filters.subcategoryIds?.length) {
+      if (filters.subcategoryIds?.length) {
         query.subcategoryId = {
-          in: Array.isArray(filters.subcategoryIds) ? filters.subcategoryIds : [filters.subcategoryIds],
+          in: Array.isArray(filters.subcategoryIds)
+            ? filters.subcategoryIds
+            : [filters.subcategoryIds],
         };
       }
-      
+
       // Color filter — renamed correctly
       if (filters.colorIds) {
         const colorIds = Array.isArray(filters.colorIds)
           ? filters.colorIds
           : [filters.colorIds];
-      
+
         if (colorIds.length) {
           query.productColorId = {
             hasSome: colorIds,
           };
         }
-       
       }
-      
-  
+
       // Sort logic
       const orderBy: any[] = [];
       const sortOrder = filters.sortOrder || 'asc';
-  
+
       switch (filters.sortBy) {
         case 'price':
           orderBy.push({ price: sortOrder });
@@ -244,7 +297,7 @@ export class ProductService {
         default:
           orderBy.push({ createdAt: 'desc' });
       }
-  
+
       const products = await this.prisma.product.findMany({
         where: query,
         orderBy,
@@ -256,32 +309,32 @@ export class ProductService {
           specifications: true,
         },
       });
-  
+
       return {
         totalCount: products.length,
         products,
       };
     } catch (error) {
       console.error('Filter error:', error);
-      throw new HttpException('Could not fetch products', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Could not fetch products',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-
-
-
   // handling the colors using
   // async filterProductsByColors(colorIds: string[]) {
-   
+
   //   return this.prisma.product.findMany({
   //     where: {
   //       productColorId: {
-  //         hasEvery: colorIds, 
+  //         hasEvery: colorIds,
   //       },
   //     },
   //   });
   // }
-  
+
   async exportProductsToCSV(res: Response): Promise<void> {
     try {
       const products = await this.getProductWithDetails();

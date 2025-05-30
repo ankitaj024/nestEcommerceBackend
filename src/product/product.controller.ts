@@ -50,6 +50,20 @@ export class ProductController {
     return this.productService.searchProducts(q, catName);
   }
 
+
+  // implementing the search API using  the subcategory and the category
+
+  @Get('/search-sub-cat')
+  @ApiOperation({ summary: 'Search for products by subcategory and category ' })
+  @ApiQuery({ name: 'query', required: true, description: 'Search query string' })
+  @ApiResponse({ status: 200, description: 'List of matching  sub category and categories ' })
+  async searchProductsBySubcatAndCat(
+    @Query('query') query: string,
+   
+  ) {
+    return this.productService.searchProductsBySubcatAndCat(query);
+  }
+
   // New method to trigger CSV export
   @Get('export')
   async exportProducts(@Res() res: Response) {
