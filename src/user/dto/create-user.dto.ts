@@ -66,7 +66,7 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     description: 'User address (optional)',
-    example: '123 Main St, Springfield',
+    example: '{123 Main St, Springfield}',
   })
   @IsOptional()
   @IsObject()  

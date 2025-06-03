@@ -236,6 +236,17 @@ export class UserController {
     return res.redirect(`http://192.168.1.61:3000/${access_token}`);
   }
 
+
+
+  // login with google 
+  @Post('/login-with-google')
+  @ApiOperation({ summary: 'User login with  google ' })
+  @ApiResponse({ status: 200, description: 'User logged in successfully' })
+  @ApiBody({ type: CreateUserDto })
+  userLoginWithGoogle(@Body() CreateUserDto: CreateUserDto) {
+    return this.userService.userLoginWithGoogle(CreateUserDto);
+  }
+
   // // for facebook handling authentication
   // @Get('facebook')
   // @UseGuards(AuthGuard('facebook'))

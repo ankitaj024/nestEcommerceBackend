@@ -56,6 +56,51 @@ export class UserService {
       );
     }
   }
+// user login with google 
+
+  async userLoginWithGoogle(CreateUserDto: CreateUserDto) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email: CreateUserDto.email,
+        },
+      });
+      if (user) {
+        const access_token = this.jwtService.sign({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        });
+     return access_token ;
+      }
+       const  Newpassword = "Google123"
+      const hashedPassword = await bcrypt.hash(Newpassword, 10);
+  const userCreated = await this.prisma.user.create({
+    data: {
+      ...CreateUserDto,
+      password: hashedPassword,
+      phoneNumber: 8095641523,
+    },
+  });
+  console.log(userCreated)
+
+      const access_token = this.jwtService.sign({
+        id: userCreated.id,
+        name: userCreated.name,
+        email: userCreated.email,
+      });
+      return {
+        status: HttpStatus.ACCEPTED,
+        access_token: access_token,
+        userDetails: userCreated,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   //FORGET-PASSWORD SERVICE
   async forgetPassword(email: string) {

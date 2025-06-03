@@ -11,8 +11,8 @@ model User {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   email          String   @unique
-  password       String
-  phoneNumber    Int
+  password       String   
+  phoneNumber    Int  @default(1234567891)
   Otp            Int?
   profilePicture String?
   isAdmin        Boolean? @default(false)
@@ -78,6 +78,8 @@ model Product {
   productSize    ProductSize[]  @relation(fields: [productSizeId], references: [id])
   //  parameters  Parameter[] @relation(fields: [parameterId], references: [id])
   reviews        Review[]
+ embedding   Float[]
+  
 
   specifications ProductSpecification[]
 }

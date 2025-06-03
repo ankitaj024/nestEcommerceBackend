@@ -21,10 +21,14 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCarouselDto } from './dto/create-carousel.dto';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ProductAIService } from './product-ai.service';
 @ApiTags('products')
 @Controller('product')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService,
+    private readonly aiService: ProductAIService,
+  ) {}
 
   @Post('/create-products')
   @ApiOperation({ summary: 'Create multiple products' })
@@ -50,17 +54,20 @@ export class ProductController {
     return this.productService.searchProducts(q, catName);
   }
 
-
   // implementing the search API using  the subcategory and the category
 
   @Get('/search-sub-cat')
   @ApiOperation({ summary: 'Search for products by subcategory and category ' })
-  @ApiQuery({ name: 'query', required: true, description: 'Search query string' })
-  @ApiResponse({ status: 200, description: 'List of matching  sub category and categories ' })
-  async searchProductsBySubcatAndCat(
-    @Query('query') query: string,
-   
-  ) {
+  @ApiQuery({
+    name: 'query',
+    required: true,
+    description: 'Search query string',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of matching  sub category and categories ',
+  })
+  async searchProductsBySubcatAndCat(@Query('query') query: string) {
     return this.productService.searchProductsBySubcatAndCat(query);
   }
 
@@ -109,11 +116,9 @@ export class ProductController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
-    enum: ['price',  'discount'],
+    enum: ['price', 'discount'],
   })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
- 
-
   @ApiResponse({ status: 200, description: 'Filtered products retrieved' })
   getFilteredProducts(@Query() filters: any) {
     return this.productService.getFilteredProducts(filters);
@@ -146,11 +151,17 @@ export class ProductController {
   getCarousel() {
     return this.productService.getCarousel();
   }
-//   @Get('/color-filter')
-//   getProductsByColorIds(@Query('colorIds') colorIds: string | string[]) {
-//     const ids = Array.isArray(colorIds) ? colorIds : [colorIds];
-//     console.log('Color IDs:', ids); 
-//     return this.productService.filterProductsByColors(ids); 
-  
-// }
+
+  // rotes for implementing the AI and generating the embedding here
+  @Post('/generate-embeddings')
+  async generateEmbeddings() {
+    console.log(" this is entery of enbediig")
+    await this.aiService.generateAndSaveProductEmbeddings();
+    return { message: 'Embeddings generated and saved.' };
+  }
+
+  @Get('/ai-category-counts')
+  async getAICategoryCounts(@Query('q') query: string) {
+    return this.aiService.matchProductsToCategories(query);
+  }
 }
