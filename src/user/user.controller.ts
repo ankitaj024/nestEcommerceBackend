@@ -16,6 +16,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
+import { CreateUserWithGoogleDto } from './dto/create-user-with-google-dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthService } from 'src/auth/auth.service';
@@ -242,9 +243,9 @@ export class UserController {
   @Post('/login-with-google')
   @ApiOperation({ summary: 'User login with  google ' })
   @ApiResponse({ status: 200, description: 'User logged in successfully' })
-  @ApiBody({ type: CreateUserDto })
-  userLoginWithGoogle(@Body() CreateUserDto: CreateUserDto) {
-    return this.userService.userLoginWithGoogle(CreateUserDto);
+  @ApiBody({ type: CreateUserWithGoogleDto })
+  userLoginWithGoogle(@Body() dto: CreateUserWithGoogleDto) {
+    return this.userService.userLoginWithGoogle(dto);
   }
 
   // // for facebook handling authentication

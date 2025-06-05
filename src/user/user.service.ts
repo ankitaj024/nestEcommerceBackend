@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/email/email.service';
 import { AddressDto } from './dto/address.dto';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserWithGoogleDto } from './dto/create-user-with-google-dto';
 
 @Injectable()
 export class UserService {
@@ -58,11 +59,11 @@ export class UserService {
   }
 // user login with google 
 
-  async userLoginWithGoogle(CreateUserDto: CreateUserDto) {
+  async userLoginWithGoogle(dto:CreateUserWithGoogleDto) {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
-          email: CreateUserDto.email,
+          email: dto.email,
         },
       });
       if (user) {
@@ -71,13 +72,13 @@ export class UserService {
           name: user.name,
           email: user.email,
         });
-     return access_token ;
+     return {access_token:access_token} ;
       }
        const  Newpassword = "Google123"
       const hashedPassword = await bcrypt.hash(Newpassword, 10);
   const userCreated = await this.prisma.user.create({
     data: {
-      ...CreateUserDto,
+      ...dto,
       password: hashedPassword,
       phoneNumber: 8095641523,
     },
@@ -442,7 +443,7 @@ export class UserService {
 
       return {
         status: HttpStatus.CREATED,
-        message: 'login successfull',
+        message: 'login successful',
         access_token: access_token,
         userData: userCreateData,
         userId: userCreateData.id,
