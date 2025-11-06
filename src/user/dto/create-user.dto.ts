@@ -8,6 +8,8 @@ import {
   Matches,
   Max,
   Min,
+  IsObject,
+  MinLength
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -38,19 +40,17 @@ export class CreateUserDto {
       'Password must be at least 6 characters, including at least one letter and one number',
     example: 'Password123',
   })
-  @IsNotEmpty()
-  @IsString()
+@IsNotEmpty()
+  @MinLength(6)
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/, {
-    message:
-      'Password must be at least 6 characters, including at least one letter and one number',
+    message: 'Password must contain at least one letter and one number',
   })
   password: string;
-
   @ApiProperty({
     description: '10-digit phone number',
     example: 9876543210,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(1000000000, { message: 'Phone number must be exactly 10 digits' })
   @Max(9999999999, { message: 'Phone number must be exactly 10 digits' })
@@ -66,11 +66,11 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     description: 'User address (optional)',
-    example: '123 Main St, Springfield',
+    example: '{123 Main St, Springfield}',
   })
   @IsOptional()
-  @IsString()
-  address: string;
+  @IsObject()  
+  address?: any;
 
   @ApiPropertyOptional({
     description: 'URL or path to the user profile image',
@@ -78,5 +78,5 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsString()
-  profileImg: string;
+  profilePicture: string;
 }

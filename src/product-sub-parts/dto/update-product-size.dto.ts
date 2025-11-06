@@ -7,7 +7,5 @@ export class UpdateProductSizeDto {
   @MaxLength(50, { message: 'Size name must not exceed 50 characters' })
   name?: string;
 
-  @IsOptional()
-  @IsString({ message: 'Product ID must be a string' })
-  productId?: string;
+
 }

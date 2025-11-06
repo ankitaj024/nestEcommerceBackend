@@ -1,0 +1,95 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Order Confirmation</title>
+  </head>
+ <body
+  style='font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;'
+>
+  <div style='width: 1024px; padding: 40px 0;'>
+    <table
+      align="center"
+      width="600"
+      cellpadding="0"
+      cellspacing="0"
+      style='background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);'
+    >
+        <tr>
+          <td
+            style='background-color: #0d6efd; padding: 20px; text-align: center; color: white;'
+          >
+            <h1 style='margin: 0; font-size: 24px;'>Order Confirmation</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding: 20px; text-align: center;'>
+            <img
+              src='cid:logo'
+              alt='Company Logo'
+              style='height: 60px; display: block; margin: 0 auto 15px;'
+            />
+            <h2 style='color: #333333; margin-bottom: 10px;'>Thank You,
+              {{name}}!</h2>
+            <p style='color: #666666; margin: 0;'>Your order
+              <strong>#{{orderId}}</strong>
+              has been successfully placed.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding: 20px;'>
+            <h3 style='color: #333;'>Order Summary</h3>
+            <table
+              width='100%'
+              cellpadding='10'
+              cellspacing='0'
+              style='border-collapse: collapse; font-size: 14px; color: #444;'
+            >
+              <thead>
+                <tr style='background-color: #f0f0f0;'>
+                  <th style='border: 1px solid #ddd;'>Product</th>
+                  <th style='border: 1px solid #ddd;'>Qty</th>
+                  <th style='border: 1px solid #ddd;'>Price</th>
+                  <th style='border: 1px solid #ddd;'>Color</th>
+                  <th style='border: 1px solid #ddd;'>Size</th>
+
+                  
+                </tr>
+              </thead>
+              <tbody>
+                {{#each items}}
+                  <tr>
+                    <td style='border: 1px solid #ddd;'>{{productName}}</td>
+                    <td
+                      style='border: 1px solid #ddd; text-align: center;'
+                    >{{quantity}}</td>
+                    <td style='border: 1px solid #ddd;'>₹{{price}}</td>
+                     <td style='border: 1px solid #ddd;'>{{productColor}}</td>
+                      <td style='border: 1px solid #ddd;'>{{productSize}}</td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+            <p style='margin-top: 15px;  font-size: 16px;'><strong>Total Amount:</strong>
+              ₹{{totalPrice}}</p>
+            <p style='margin-top: 25px; color: #555;'>
+              We’ll notify you when your order is shipped. You can track the
+              status from your account dashboard.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td
+            style='background-color: #f8f8f8; padding: 20px; text-align: center; font-size: 13px; color: #777;'
+          >
+            Need help? Contact our support team at
+            <a
+              href='mailto:support@yourstore.com'
+              style='color: #0d6efd;'
+            >support@yourstore.com</a><br /><br />
+            &copy; 2025 Your eCommerce Store. All rights reserved.
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

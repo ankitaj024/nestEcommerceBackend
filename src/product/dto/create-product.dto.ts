@@ -8,9 +8,21 @@ import {
   MaxLength,
   Min,
   Max,
+ IsEnum,
 } from 'class-validator';
 
+
+export enum Rating {
+  ONE = 'ONE',
+  TWO = 'TWO',
+  THREE = 'THREE',
+  FOUR = 'FOUR',
+  FIVE = 'FIVE',
+}
 export class CreateProductDto {
+   @IsEnum(Rating, { message: 'Rating must be one of the following: ONE, TWO, THREE, FOUR, or FIVE' })
+    rating: Rating;
+  
   // Title
   @IsString({ message: 'Title must be a string' })
   @IsNotEmpty({ message: 'Title is required' })
@@ -55,6 +67,7 @@ export class CreateProductDto {
   images: string[];
 
   // Foreign Keys
+  @IsOptional()
   @IsString({ message: 'Category ID must be a string' })
   @IsNotEmpty({ message: 'Category ID is required' })
   categoryId: string;

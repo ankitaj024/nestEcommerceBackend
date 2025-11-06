@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import * as nodemailer from 'nodemailer';
 import { EMAIL_TRANSPORTER } from './email.constant';
-
-import   hbs from 'nodemailer-express-handlebars';
-
+import  * as  hbs from 'nodemailer-express-handlebars';
 import * as path from 'path';
+import { PdfModule } from 'src/utils/pdf/pdf.module';
 
 @Module({
+  imports: [PdfModule],
   providers: [
     {
       provide: EMAIL_TRANSPORTER,

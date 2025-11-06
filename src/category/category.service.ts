@@ -68,6 +68,7 @@ export class CategoryService {
             name: true,
             description: true,
             image: true,
+            id:true
           },
         },
       },
@@ -90,6 +91,7 @@ export class CategoryService {
             name: true,
             description: true,
             image: true,
+            id:true
           },
         
       });
@@ -147,12 +149,14 @@ export class CategoryService {
                   createdAt: true
                 }
               },
-              colors: {           
+              productColorId:true,
+              productColor: {           
                 select: {
                   name: true,
                 }
               },
-              sizes: {                
+              productSizeId:true,
+              productSize: {                
                 select: {
                   name: true,
                 }
@@ -193,7 +197,7 @@ export class CategoryService {
     }
   }
 
-  // getting daat by subcategory 
+  // getting data by subcategory 
 
 
   async getProductBySubCategory(categoryName: string, subcategoryName: string) {
@@ -234,34 +238,22 @@ export class CategoryService {
           subcategoryId: subcategory.id,
         },
         include: {
-          brand: {
+          brand: true,
+          productColor: {
             select: {
+              id: true,
               name: true,
-              logo: true,
+              hexCode: true,
             },
           },
-          colors: {
+          productSize: {
             select: {
-              name: true,
-            },
-          },
-          sizes: {
-            select: {
+              id: true,
               name: true,
             },
           },
-          reviews: {
-            select: {
-              rating: true,
-              comment: true,
-            },
-          },
-          specifications: {
-            select: {
-              name: true,
-              value: true,
-            },
-          },
+          reviews: true,
+          specifications: true,
         },
       });
   

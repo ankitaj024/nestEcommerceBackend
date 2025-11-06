@@ -14,7 +14,5 @@ export class CreateProductColorDto {
   @IsNotEmpty({ message: 'Hex code is required' })
   hexCode: string;
 
-  @IsString({ message: 'Product ID must be a string' })
-  @IsNotEmpty({ message: 'Product ID is required' })
-  productId: string;
+ 
 }
